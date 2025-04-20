@@ -29,3 +29,16 @@ class LandInfo(Base):
 
     def __repr__(self):
         return f"<LandInfo(pnu={self.pnu}, official_land_price={self.official_land_price}, land_area={self.land_area})>"
+
+class LandReport(Base):
+    __tablename__ = "land_report"
+
+    report_id = Column(Integer, primary_key=True, autoincrement=True)
+    pnu = Column(String(20), nullable=False)
+    report = Column(Text, nullable=False)
+    like = Column(Integer, nullable=False, default=0)
+    dislike = Column(Integer, nullable=False, default=0)
+    generated_at = Column(TIMESTAMP, nullable=True, server_default=func.current_timestamp())
+
+    def __repr__(self):
+        return f"<Report(report_id={self.report_id}, pnu='{self.pnu}', like={self.like}, dislike={self.dislike})>"

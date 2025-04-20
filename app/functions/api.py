@@ -1,5 +1,9 @@
+from app.functions.geo import get_pnu_from_addr
+from app.schemas import LAND
 import requests
 import json
+import xmltodict
+import re
 
 
 def _calc_date(year: int, month: int) -> tuple:
@@ -61,18 +65,41 @@ class LandFeatureAPI:
         response = requests.get(self.url, params=params).json()
         if "landCharacteristicss" in response:
             if assorted:
-                return response["landCharacteristicss"]["field"]
+                return self._parsing_data(response["landCharacteristicss"]["field"])
             else:
-                return response["landCharacteristicss"]["field"][0]
+                return self._parsing_data(response["landCharacteristicss"]["field"][0])
         else:
             if year < 2015:
                 return None
             else:
                 return self.get_data(pnu, year - 1, assorted)
-
+    def _parsing_data(self, data):
+        if not data:
+            return None
+        # 만약 데이터가 리스트일 경우
+        if isinstance(data, list):
+            data_list = []
+            for d in data:
+                data_list.append(self._parsing_data(d))
+            return data_list
+        # 그 외의 경우 (딕셔너리)
+        else:
+            return LAND.LandFeature(
+                pnu=data["pnu"],
+                register=data["regstrSeCodeNm"],
+                cls=data["lndcgrCodeNm"],
+                zoning=data["prposArea1Nm"],
+                usage=data["ladUseSittnNm"],
+                height=data["tpgrphHgCodeNm"],
+                form=data["tpgrphFrmCodeNm"],
+                road_side=data["roadSideCodeNm"],
+                area=float(data["lndpclAr"]),
+                official_land_price=float(data["pblntfPclnd"]),
+                stdr_year=data["stdrYear"],
+            )
 
 class LandTradeAPI:
-    url = "http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcLandTrade"
+    url = "http://apis.data.go.kr/1613000/RTMSDataSvcLandTrade/getRTMSDataSvcLandTrade"
 
     def __init__(self, key: str) -> None:
         self.default_params = {"serviceKey": key, "numOfRows": "100", "pageNo": "1"}
@@ -80,14 +107,48 @@ class LandTradeAPI:
     def get_data(self, pnu: str, year: int, month: int):
         params = {"LAWD_CD": pnu, "DEAL_YMD": f"{year:04d}{month:02d}"}
         params.update(self.default_params)
-        # response = xmltodict.parse(requests.get(self.url, params=params).text)
-        return None
-        if response["response"]["header"]["resultCode"] == "00":
+        response = xmltodict.parse(requests.get(self.url, params=params).text)
+        if response["response"]["header"]["resultCode"] == "000":
             if response["response"]["body"]["totalCount"] == "0":
                 return None
             else:
-                return response["response"]["body"]["items"]["item"]
+                return self._parsing_data(response["response"]["body"]["items"]["item"])
 
+    def _parsing_data(self, datas) -> list:
+        if isinstance(datas, dict):
+            datas = [datas]
+        if isinstance(datas, list):
+            results = []
+            for data in datas:
+                if data["estateAgentSggNm"] is None or data["umdNm"] is None or data["jibun"] is None:
+                    continue
+                if data["dealAmount"] is None or data["dealArea"] is None or data["dealDay"] is None or data["dealMonth"] is None or data["dealYear"] is None or data["jimok"] is None or data["landUse"] is None:
+                    continue
+                pnu = get_pnu_from_addr(data["estateAgentSggNm"] + " " + data["umdNm"])
+                if pnu is None:
+                    continue
+                jibun = data["jibun"]
+                is_san = False
+                if re.match(r"^산", jibun):
+                    is_san = True
+                    jibun = jibun[1:]
+                pnu += "2" if is_san else "1"
+                for _ in range(4 - len(jibun)):
+                    pnu += "0"
+                pnu += re.sub(r"\D", "", jibun)
+                results.append(LAND.LandTrade(
+                    pnu=pnu,
+                    price=float(data["dealAmount"].replace(",", ""))*10000,
+                    area=float(data["dealArea"]),
+                    day=int(data["dealDay"]),
+                    month=int(data["dealMonth"]),
+                    year=int(data["dealYear"]),
+                    cls=data["jimok"],
+                    zoning=data["landUse"],
+                ))
+            return results
+        else:
+            raise TypeError(datas)
 
 class LandUsePlanAPI:
     url = "https://api.vworld.kr/ned/data/getLandUseAttr"
@@ -145,7 +206,7 @@ class FluctuationRateOfLandPriceAPI:
         params.update(self.default_params)
         response = requests.get(self.by_region_url, params=params).json()
         if "byRegions" in response:
-            return response["byRegions"]["field"][0]
+            return self._parsing_data(response["byRegions"]["field"][0])
         else:
             if year < 2015:
                 return None
@@ -160,7 +221,7 @@ class FluctuationRateOfLandPriceAPI:
         if "byRegions" in response:
             for data in response["byRegions"]["field"]:
                 if data["ldCtprvnCode"] == ld_code[0:2]:
-                    return data
+                    return self._parsing_data(data)
         else:
             if year < 2015:
                 return None
@@ -168,7 +229,13 @@ class FluctuationRateOfLandPriceAPI:
                 _year, _month = _calc_date(year, month)
                 return self.get_data_by_large_region(ld_code, _year, _month)
 
-
+    def _parsing_data(self, data) -> LAND.FluctuationRate:
+        return LAND.FluctuationRate(
+            index=float(data["pclndIndex"]),
+            change_rt=float(data["pclndChgRt"]),
+            accumulate_change_rt=float(data["acmtlPclndChgRt"]),
+        )
+    
 class ProducerPriceIndexAPI:
     url = "https://ecos.bok.or.kr/api/StatisticSearch"
 

@@ -9,7 +9,7 @@ def get_pnu(lat: float, lng: float) -> tuple:
         request_address = local.geo_coord2address(lng, lat, dataframe=False)
         request_region = local.geo_coord2regioncode(lng, lat, dataframe=False)
 
-        if request_region == None:
+        if request_region is None:
             return None, None
         i = 0 if request_region["documents"][0]["region_type"] == "B" else 1
         pnu = request_region["documents"][i]["code"]
@@ -31,6 +31,16 @@ def get_pnu(lat: float, lng: float) -> tuple:
         print(e)
         return None, None
 
+
+def get_pnu_from_addr(word: str):
+    local = Local(service_key=KAKAO_API_KEY)
+    address = local.search_address(word, dataframe=False)
+
+    if len(address["documents"]) == 0:
+        return None
+    pnu = address["documents"][0]["address"]["b_code"]
+    pnu = pnu if pnu != "" else address["documents"][0]["address"]["h_code"]
+    return pnu
 
 def get_coord(word: str) -> tuple:
     local = Local(service_key=KAKAO_API_KEY)
@@ -57,6 +67,6 @@ def auto_complete_address(query: str):
                     "lng": r["x"],
                 }
             )
-    except:
+    except:  # noqa: E722
         related_search = []
     return related_search

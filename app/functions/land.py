@@ -30,16 +30,16 @@ def _generate_land_data(pnu: str):
         lup_result = "없음"
 
     land_detail = {
-        "official_price": lf_result["pblntfPclnd"],
+        "official_price": lf_result.official_land_price,
         "predict_price": None,
-        "land_cls": lf_result["lndcgrCodeNm"],
-        "land_zoning": lf_result["prposArea1Nm"],
-        "land_usage": lf_result["ladUseSittnNm"],
-        "register": lf_result["regstrSeCodeNm"],
-        "area": lf_result["lndpclAr"],
-        "height": lf_result["tpgrphHgCodeNm"],
-        "form": lf_result["tpgrphFrmCodeNm"],
-        "road_side": lf_result["roadSideCodeNm"],
+        "land_cls": lf_result.cls,
+        "land_zoning": lf_result.zoning,
+        "land_usage": lf_result.usage,
+        "register": lf_result.register,
+        "area": lf_result.area,
+        "height": lf_result.height,
+        "form": lf_result.form,
+        "road_side": lf_result.road_side,
         "use_plan": lup_result,
     }
     land_detail = LAND.LandDetail(**land_detail)
@@ -51,7 +51,7 @@ def _generate_land_data(pnu: str):
         "lng": lng,
         "detail": land_detail,
         "last_predict_date": None,
-        "land_feature_stdr_year": lf_result["stdrYear"],
+        "land_feature_stdr_year": lf_result.stdr_year,
         "land_trade_list": [],
         "auction": None,
         "listing": None,

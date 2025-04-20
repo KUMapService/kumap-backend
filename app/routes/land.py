@@ -4,6 +4,7 @@ from app import get_db
 from app.config.auth import JWTBearer
 from app.functions import land
 from app.functions import text_generate
+from app.models.land import LandReport
 from app.models.user import User, UserFavoriteLand
 from app.schemas import LAND, KUMapBaseResponse
 
@@ -56,31 +57,49 @@ def get_land_data(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@land_router.get(
-    "/get-land-predicted-price", response_model=LAND.GetLandPredictedPriceResponse
-)
+@land_router.get("/get-land-predicted-price", response_model=LAND.GetLandPredictedPriceResponse)
 def get_land_predicted_price(
     request: LAND.GetLandRequest = Depends(), db: Session = Depends(get_db)
 ):
-    try:
-        predict_price = land.set_land_predict_price_data(request.pnu, db)
-        return {
-            "status": "success",
-            "message": "해당 토지의 예측가를 성공적으로 받아왔습니다.",
-            "predict_price": predict_price,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    #try:
+    predict_price = land.set_land_predict_price_data(request.pnu, db)
+    return {
+        "status": "success",
+        "message": "해당 토지의 예측가를 성공적으로 받아왔습니다.",
+        "predict_price": predict_price,
+    }
+    #except Exception as e:
+    #    raise HTTPException(status_code=500, detail=str(e))
 
 
-@land_router.get("/get-land-report", response_model=KUMapBaseResponse)
+@land_router.get("/get-land-report", response_model=LAND.GetLandReportResponse)
 def get_land_report(
     request: LAND.GetLandRequest = Depends(),
     # payload: dict = Depends(JWTBearer(auto_error=False)),
     db: Session = Depends(get_db),
 ):
-    text_generate.generate(request.pnu, db)
+    report_data = db.query(LandReport).filter(LandReport.pnu == request.pnu).first()
+    if report_data is None:
+        report = text_generate.generate(request.pnu, db)
+        new_report = LandReport(
+            pnu=request.pnu,
+            report=report,
+        )
+        db.add(new_report)
+        db.commit()
+        db.refresh(new_report)
+    else:
+        report = report_data.report
     return {
         "status": "success",
-        "message": "굿",
+        "message": "토지분석서를 성공적으로 받아왔습니다.",
+        "report": report,
     }
+
+# @land_router.get("/get-bid-data", response_model=LAND.GetLandReportResponse)
+# def get_bid_data(
+#     request: LAND.GetLandRequest = Depends(),
+#     # payload: dict = Depends(JWTBearer(auto_error=False)),
+#     db: Session = Depends(get_db),
+# ):
+    

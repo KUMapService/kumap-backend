@@ -3,8 +3,71 @@ from app.schemas.GEO import AddressSchema
 from pydantic import BaseModel, Field, NaiveDatetime
 from typing import Optional, List
 
-
 # dataclasses
+class LandFeature(BaseModel):
+    # 토지 특성 정보 데이터 클래스
+    pnu: str = Field(..., description="PNU코드")
+    register: str = Field(..., description="필지")
+    cls: str = Field(..., description="지목")
+    zoning: str = Field(..., description="용도지역")
+    usage: str = Field(..., description="이용상황")
+    height: str = Field(..., description="지세")
+    form: str = Field(..., description="형상")
+    road_side: str = Field(..., description="도로접면")
+    area: float = Field(..., description="면적")
+    official_land_price: float = Field(..., description="공시지가")
+    stdr_year: str = Field(..., description="기준년도")
+
+class LandTrade(BaseModel):
+    # 토지 매매 정보 데이터 클래스
+    pnu: str = Field(..., description="일부 PNU코드")
+    price: float = Field(..., description="거래가격")
+    area: float = Field(..., description="거래면적")
+    day: int = Field(..., description="거래일자")
+    month: int = Field(..., description="거래월")
+    year: int = Field(..., description="거래년도")
+    cls: str = Field(..., description="지목")
+    zoning: str = Field(..., description="용도지역")
+    
+class FluctuationRate(BaseModel):
+    # 토지 지가변동률 데이터 클래스
+    index: float = Field(..., description="지가지수")
+    change_rt: float = Field(..., description="지가변동률")
+    accumulate_change_rt: float = Field(..., description="누계 지가변동률")
+
+class PromptLandData(BaseModel):
+    # 프롬프트에 들어가는 토지 데이터 형식
+    pnu: str = Field(..., description="PNU코드")
+    feature: LandFeature = Field(..., description="토지특성정보")
+    uses: str = Field(..., description="토지이용계획")
+    land_fluctuation_rate: FluctuationRate = Field(..., description="토지 지가변동률")
+    large_cl_fluctuation_rate: FluctuationRate = Field(..., description="권역별 지가변동률")
+    ppi: float = Field(..., description="생산자물가지수")
+    cpi: float = Field(..., description="소비자물가지수")
+
+    def return_to_prompt(self) -> str:
+        # 데이터클래스를 프롬프트로 변환하는 함수
+        return f"""
+        필지: {self.feature.register}
+        지목: {self.feature.cls}
+        용도지역: {self.feature.zoning}
+        이용상황: {self.feature.usage}
+        지세: {self.feature.height}
+        형상: {self.feature.form}
+        도로접면: {self.feature.road_side}
+        이용계획: {self.uses}
+        면적: {self.feature.area}㎡
+        공시지가: {self.feature.official_land_price}원/㎡
+        지가지수: {self.land_fluctuation_rate.index}
+        지가변동률: {self.land_fluctuation_rate.change_rt}%
+        누계지가변동률: {self.land_fluctuation_rate.accumulate_change_rt}%
+        권역별지가지수: {self.large_cl_fluctuation_rate.index}
+        권역별지가변동률: {self.large_cl_fluctuation_rate.change_rt}%
+        권역별누계지가변동률: {self.large_cl_fluctuation_rate.accumulate_change_rt}%
+        생산자물가지수: {self.ppi}
+        소비자물가지수: {self.cpi}
+        """.strip()
+
 class LandDetail(BaseModel):
     official_price: float = Field(..., description="공시지가")
     predict_price: Optional[float] = Field(None, description="예측 실거래가")
@@ -17,7 +80,6 @@ class LandDetail(BaseModel):
     form: str = Field(..., description="형상")
     road_side: str = Field(..., description="도로접면")
     use_plan: str = Field(..., description="이용계획")
-
 
 class AuctionObj(BaseModel):
     case_cd: str = Field(..., description="사건번호")
@@ -84,6 +146,9 @@ class GetLandDataResponse(KUMapBaseResponse):
     like: bool = Field(..., description="해당 토지의 좋아요 여부")
     total_like: int = Field(..., description="해당 토지의 좋아요 수")
 
-
 class GetLandPredictedPriceResponse(KUMapBaseResponse):
     predict_price: float = Field(None, description="예측 실거래가")
+
+class GetLandReportResponse(KUMapBaseResponse):
+    report: str = Field(..., description="토지분석서 내용")
+    

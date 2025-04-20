@@ -1,10 +1,9 @@
 from datetime import datetime
-from dataclasses import asdict
 import google.generativeai as genai
 from sqlalchemy.orm import Session
 import xgboost as xgb
 from app.config.model import MODEL_PATH
-from app.config.key import VWORLD_API_KEY, ECOS_API_KEY, GOOGLE_API_KEY
+from app.config.key import VWORLD_API_KEY, LAND_API_KEY, ECOS_API_KEY, GOOGLE_API_KEY
 from app.functions.api import (
     LandFeatureAPI,
     LandUsePlanAPI,
@@ -14,7 +13,7 @@ from app.functions.api import (
     ConsumerPriceIndexAPI,
 )
 from app.functions.convert_code import code2addr
-
+from app.schemas import LAND
 from app.models.land import LandInfo
 
 PROMPT = """
@@ -43,135 +42,117 @@ PROMPT = """
     - 토지 특성 분석, 입지 분석, 비교 사례 분석을 순서대로 진행해.
     - 정보가 없는 항목은 "해당사항 없습니다."로 작성해.
 3. **결론**:
-    - 제곱미터당 가격을 먼
+    - 제곱미터당 가격을 먼저 제시하고, 면적과 곱한 총액을 마지막에 명시해.
 
 ### 출력 예시
 ## 토지 가격 평가 설명
-- 평가 토지: {}
-- 면적:
-- 지목:
+평가 토지: [주소]
+면적: [면적]
+지목: [지목]
+이용상황: [이용상황]
+용도지역: [용도지역]
+도로조건: [도로조건]
+형상지세: [형상지세]
+평가액: ￦[총액] ([제곱미터당 가격]원/㎡ x [면적]㎡)
+[주소] 토지의 가격은 [총액]원으로 산정되었습니다. 이에 대한 근거는 다음과 같습니다.
+
+**토지 특성 분석:**
+
+위치 및 주위환경:[분석]
+교통상황: [분석]
+형태 및 이용상황: [분석]
+인접 도로상태: [분석]
+토지이용계획사항: [분석]
+기타 참고사항: [분석]
+
+**입지 분석:**
+
+주거환경: [분석]
+상권: [분석]
+교통환경: [분석]
+개발가능성: [분석]
+
+**비교 사례 분석:**
+
+인근 지역에서 대상 토지와 용도지역, 이용상황, 주변 환경이 비슷한 [비교지 주소]를 비교지로 선정했습니다.
+
+비교 토지: [비교지 주소]
+면적: [비교지 면적]
+지목: [비교지 지목]
+이용상황: [비교지 이용상황]
+용도지역: [비교지 용도지역]
+도로조건: [비교지 도로조건]
+형상지세: [비교지 형상지세]
+공시지가: [비교지 공시지가]원/㎡
+
+**대상 토지와 비교지의 비교:**
+
+가로조건: [분석]
+접근조건: [분석]
+환경조건: [분석]
+획지조건: [분석]
+행정적조건: [분석]
+기타조건: [분석]
+요약: [대상 토지와 비교지의 유사성/차이점 요약, 가격 산정 근거]
+
+**결론:**
+
+위 분석을 바탕으로 [주소] 토지의 가격은 [제곱미터당 가격]원/㎡으로 평가되었습니다. 이는 면적으로 환산하면 [총액]원입니다.
+
+### 추가 지침
+- 비교 분석 시, 조건이 비슷하면 "대체로 유사함"이라고 쓰고, 차이가 있으면 "대상 토지가 [특성]에서 열세함"처럼 구체적으로 설명해.  
+- 예를 들어, "경기도 광명시 광명동 산79-2 토지의 가격은 736,179,000원으로 산정되었습니다. 이에 대한 근거는 다음과 같습니다."처럼 자연스럽게 시작해.  
+- 모든 근거는 결정트리와 비교군 정보를 기반으로 논리적으로 연결해 설명해.
 
 """
 
-class LandInfoData():
-    def __init__(self):
-        self.pnu = ""
-        self.land_register = ""
-        self.land_classification = ""
-        self.land_zoning = ""
-        self.land_use_situation = ""
-        self.land_height = ""
-        self.land_form = ""
-        self.road_side = ""
-        self.land_uses = ""
-        self.land_area = ""
-        self.official_land_price = ""
-        self.land_index = ""
-        self.land_change_rt = ""
-        self.land_accumulate_change_rt = ""
-        self.large_cl_index = ""
-        self.large_cl_change_rt = ""
-        self.large_cl_accumulate_change_rt = ""
-        self.ppi = ""
-        self.cpi = ""
-    
-    def feature_parsing(self, data: dict) -> None:
-        self.pnu = data["pnu"]
-        self.land_register = data["regstrSeCodeNm"]
-        self.land_classification = data["lndcgrCodeNm"]
-        self.land_zoning = data["prposArea1Nm"]
-        self.land_use_situation = data["ladUseSittnNm"]
-        self.land_height = data["tpgrphHgCodeNm"]
-        self.land_form = data["tpgrphFrmCodeNm"]
-        self.road_side = data["roadSideCodeNm"]
-        self.land_area = data["lndpclAr"]
-        self.official_land_price = data["pblntfPclnd"]
-
-    def land_use_parsing(self, data: str) -> None:
-        self.land_uses = data
-
-    def land_fluctuation_rate_parsing(self, data: dict) -> None:
-        self.land_index = str(data["pclndIndex"])
-        self.land_change_rt = str(data["pclndChgRt"]) + "%"
-        self.land_accumulate_change_rt = str(data["acmtlPclndChgRt"]) + "%"
-
-    def large_cl_fluctuation_rate_parsing(self, data: dict) -> None:
-        print(data)
-        self.large_cl_index = str(data["pclndIndex"])
-        self.large_cl_change_rt = str(data["pclndChgRt"]) + "%"
-        self.large_cl_accumulate_change_rt = str(data["acmtlPclndChgRt"]) + "%"
-
-    def ppi_parsing(self, ppi: float) -> None:
-        self.ppi = str(ppi)
-    
-    def cpi_parsing(self, cpi: float) -> None:
-        self.cpi = str(cpi)
-
-    def return_to_prompt(self) -> str:
-        return f"""
-        필지: {self.land_register}
-        지목: {self.land_classification}
-        용도지역: {self.land_zoning}
-        이용상황: {self.land_use_situation}
-        지세: {self.land_height}
-        형상: {self.land_form}
-        도로접면: {self.road_side}
-        이용계획: {self.land_uses}
-        면적: {self.land_area}㎡
-        공시지가: {self.official_land_price}원/㎡
-        지가지수: {self.land_index}
-        지가변동률: {self.land_change_rt}
-        누계지가변동률: {self.land_accumulate_change_rt}
-        권역별지가지수: {self.large_cl_index}
-        권역별지가변동률: {self.large_cl_change_rt}
-        권역별누계지가변동률: {self.large_cl_accumulate_change_rt}
-        생산자물가지수: {self.ppi}
-        소비자물가지수: {self.cpi}
-        """
-
-def _get_land_feature_data(pnu: str, year: int, month: int):
-    land_info = LandInfoData()
+def _get_prompt_land_data(pnu: str, year: int, month: int):
     # 토지 정보 및 이용계획 받아오기
-    lf_api = LandFeatureAPI(key=VWORLD_API_KEY)
-    land_info.feature_parsing(data=lf_api.get_data(pnu, year))
-    lup_api = LandUsePlanAPI(key=VWORLD_API_KEY)
-    land_info.land_use_parsing(lup_api.get_data(pnu, return2name=True))
+    land_feature = LandFeatureAPI(key=VWORLD_API_KEY).get_data(pnu, year)
+    land_uses = LandUsePlanAPI(key=VWORLD_API_KEY).get_data(pnu, return2name=True)
     # 지가변동률 받아오기
-    frolp_api = FluctuationRateOfLandPriceAPI(key=VWORLD_API_KEY)
-    land_info.land_fluctuation_rate_parsing(data=frolp_api.get_data_by_region(pnu, year, month))
-    land_info.large_cl_fluctuation_rate_parsing(data=frolp_api.get_data_by_large_region(pnu, year, month))
+    land_fluctuation_rate = FluctuationRateOfLandPriceAPI(key=VWORLD_API_KEY).get_data_by_region(pnu, year, month)
+    large_cl_fluctuation_rate = FluctuationRateOfLandPriceAPI(key=VWORLD_API_KEY).get_data_by_large_region(pnu, year, month)
     # 생산자 및 소비자 물가 지수 받아오기
-    ppi_api = ProducerPriceIndexAPI(key=ECOS_API_KEY)
-    cpi_api = ConsumerPriceIndexAPI(key=ECOS_API_KEY)
-    land_info.ppi_parsing(ppi=ppi_api.get_data(year, month))
-    land_info.cpi_parsing(cpi=cpi_api.get_data(year, month))
-    print(land_info.return_to_prompt())
+    ppi = ProducerPriceIndexAPI(key=ECOS_API_KEY).get_data(year, month)
+    cpi = ConsumerPriceIndexAPI(key=ECOS_API_KEY).get_data(year, month)
+    return LAND.PromptLandData(
+        pnu=pnu,
+        feature=land_feature,
+        uses=land_uses,
+        land_fluctuation_rate=land_fluctuation_rate,
+        large_cl_fluctuation_rate=large_cl_fluctuation_rate,
+        ppi=ppi,
+        cpi=cpi,
+    )
 
-def _get_land_trade_data(land: LandInfoData, year: int, month: int):
+def _get_land_trade_data(land: LAND.PromptLandData, year: int, month: int):
     # TODO: 유사 토지 거래 사례 받아오기 기능
-    lt_api = LandTradeAPI(key=VWORLD_API_KEY)
-    compare_land_trade = {}
+    lt_api = LandTradeAPI(key=LAND_API_KEY)
+    compare_land_trade = None
 
     while True:
-        result = lt_api.get_data(land.pnu[:5], year, month)
-        if not result:
+        results = lt_api.get_data(land.pnu[:5], year, month)
+        for result in results:
+            if isinstance(result, LAND.LandTrade):
+                if result.cls == land.feature.cls:
+                    compare_land_trade = result
+                    break
+        if compare_land_trade is not None:
+            break
+        else:
             month -= 1
             if month == 0:
                 month = 12
                 year -= 1
-            if year == 2000:
+            if year == 2020: 
                 break
             continue
-        for r in result:
-            if isinstance(r, dict):
-                if r["지목"] == land.land_classification:
-                    print(r)
-                    if r.get("용도지역"):
-                        if r["용도지역"] == land.land_zoning:
-                            compare_land_trade = r
-                            break
-    if compare_land_trade != {}:
-        print(compare_land_trade)
+    features = LandFeatureAPI(key=VWORLD_API_KEY).get_data(compare_land_trade.pnu, year, assorted=True)
+    for f in features:
+        if f.cls == compare_land_trade.cls and f.zoning == compare_land_trade.zoning:
+            return _get_prompt_land_data(f.pnu, year, month)
+    
 
 def generate(pnu: str, db: Session):
     # 예측 모델 불러오기
@@ -192,17 +173,24 @@ def generate(pnu: str, db: Session):
         return None
     target_price = land_info.predict_land_price
     # 토지 정보 받아오기
-    target_info = _get_land_feature_data(pnu, year, month)
+    target_land = _get_prompt_land_data(pnu, year, month)
+    target_info = target_land.return_to_prompt()
     # 주변 상권 정보 받아오기
-
+    # TODO: 주변 상권 정보 받아오기
     # 토지 정보 정제
-
     tree_text = ""
     tree_dump = model.get_booster().get_dump()
     for i, tree in enumerate(tree_dump):
         tree_text += f"Tree {i}:\n{tree}"
 
     # 주변의 유사 토지 거래 사례 받아오기
-    compare_info = _get_land_trade_data(pnu, year, month)
-    
+    compare_info = _get_land_trade_data(target_land, year, month).return_to_prompt()
+    response = llm_model.generate_content(PROMPT.format(
+        target_address=target_address,
+        target_info=target_info,
+        tree_text=tree_text,
+        compare_info=compare_info,
+        target_price=target_price
+    ))
+    return response.text
     

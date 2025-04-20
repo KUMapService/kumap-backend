@@ -3,5 +3,6 @@ import os
 KAKAO_API_KEY = os.getenv("KAKAO_API_KEY")
 KAKAO_JAVASCRIPT_API_KEY = os.getenv("KAKAO_JAVASCRIPT_API_KEY")
 VWORLD_API_KEY = os.getenv("VWORLD_API_KEY")
+LAND_API_KEY = os.getenv("LAND_API_KEY")
 ECOS_API_KEY = os.getenv("ECOS_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
