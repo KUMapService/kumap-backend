@@ -15,4 +15,5 @@ app/static/images/
 
 # misc
 .env
-
+.venv/
+*.pyc
