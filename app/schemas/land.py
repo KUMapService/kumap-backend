@@ -1,5 +1,5 @@
 from app.schemas import KUMapBaseResponse
-from app.schemas.GEO import AddressSchema
+from app.schemas.geo import AddressSchema
 from pydantic import BaseModel, Field, NaiveDatetime
 from typing import Optional, List
 

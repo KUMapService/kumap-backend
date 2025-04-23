@@ -12,8 +12,9 @@ import smtplib
 from typing import Optional
 from sqlalchemy.orm import Session
 from app import get_db
+from app.core import APP_DIR
 from app.core.security import JWTBearer
-from app.core.config import APP_DIR, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from app.core.mail import SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 from app.models.user import User, UserFavoriteLand
 from app.functions.land import get_land_data
 from app.schemas import KUMapBaseResponse, user

@@ -1,10 +1,12 @@
-import os
+from datetime import datetime, timedelta
+from typing import Optional
+
 from fastapi import Request, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import jwt, JWTError
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
+from app.core.config import SECRET_KEY, ALGORITHM
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -46,3 +48,25 @@ class JWTBearer:
                 detail="Invalid token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """엑세스 토큰 생성 함수
+
+    """
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def create_refresh_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=7)   # 보통 리프레시 토큰은 7일짜리
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt

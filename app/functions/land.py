@@ -5,9 +5,9 @@ from app.functions.api import LandFeatureAPI, LandUsePlanAPI
 from app.functions.convert_code import code2addr
 from app.functions.geo import get_coord
 import app.functions.model as model
-from app.config.key import VWORLD_API_KEY
+from app.core.key import VWORLD_API_KEY
 from app.models.land import LandInfo
-from app.schemas import LAND
+from app.schemas import land
 
 
 def _generate_land_data(pnu: str):
@@ -42,7 +42,7 @@ def _generate_land_data(pnu: str):
         "road_side": lf_result.road_side,
         "use_plan": lup_result,
     }
-    land_detail = LAND.LandDetail(**land_detail)
+    land_detail = land.LandDetail(**land_detail)
 
     land = {
         "pnu": pnu,
@@ -57,7 +57,7 @@ def _generate_land_data(pnu: str):
         "listing": None,
     }
 
-    land = LAND.Land(**land)
+    land = land.Land(**land)
     return land
 
 
@@ -70,7 +70,7 @@ def get_land_data(pnu: str, db: Session):
     land_info = db.query(LandInfo).filter(LandInfo.pnu == pnu).first()
 
     if land_info:
-        land_detail = LAND.LandDetail(
+        land_detail = land.LandDetail(
             official_price=land_info.official_land_price,
             predict_price=land_info.predict_land_price,
             land_cls=land_info.land_classification,
@@ -84,7 +84,7 @@ def get_land_data(pnu: str, db: Session):
             use_plan=land_info.land_uses,
         )
 
-        land = LAND.Land(
+        land = land.Land(
             pnu=pnu,
             address=address,
             lat=lat,

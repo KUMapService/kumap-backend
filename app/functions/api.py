@@ -1,5 +1,5 @@
 from app.functions.geo import get_pnu_from_addr
-from app.schemas import LAND
+from app.schemas import land
 import requests
 import json
 import xmltodict
@@ -84,7 +84,7 @@ class LandFeatureAPI:
             return data_list
         # 그 외의 경우 (딕셔너리)
         else:
-            return LAND.LandFeature(
+            return land.LandFeature(
                 pnu=data["pnu"],
                 register=data["regstrSeCodeNm"],
                 cls=data["lndcgrCodeNm"],
@@ -136,7 +136,7 @@ class LandTradeAPI:
                 for _ in range(4 - len(jibun)):
                     pnu += "0"
                 pnu += re.sub(r"\D", "", jibun)
-                results.append(LAND.LandTrade(
+                results.append(land.LandTrade(
                     pnu=pnu,
                     price=float(data["dealAmount"].replace(",", ""))*10000,
                     area=float(data["dealArea"]),
@@ -229,8 +229,8 @@ class FluctuationRateOfLandPriceAPI:
                 _year, _month = _calc_date(year, month)
                 return self.get_data_by_large_region(ld_code, _year, _month)
 
-    def _parsing_data(self, data) -> LAND.FluctuationRate:
-        return LAND.FluctuationRate(
+    def _parsing_data(self, data) -> land.FluctuationRate:
+        return land.FluctuationRate(
             index=float(data["pclndIndex"]),
             change_rt=float(data["pclndChgRt"]),
             accumulate_change_rt=float(data["acmtlPclndChgRt"]),

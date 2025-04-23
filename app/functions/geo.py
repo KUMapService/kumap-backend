@@ -1,5 +1,5 @@
 from PyKakao import Local
-from app.config.key import KAKAO_API_KEY
+from app.core.key import KAKAO_API_KEY
 from app.functions.convert_code import code2addr
 
 

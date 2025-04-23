@@ -1,7 +1,7 @@
 import xgboost as xgb
 import pandas as pd
 import app.functions.make_input_data as mid
-from app.config import model
+from app.core import model
 
 
 def predict(pnu: str, year: int, month: int, return_all=False) -> int:

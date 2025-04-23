@@ -2,8 +2,8 @@ from datetime import datetime
 import google.generativeai as genai
 from sqlalchemy.orm import Session
 import xgboost as xgb
-from app.config.model import MODEL_PATH
-from app.config.key import VWORLD_API_KEY, LAND_API_KEY, ECOS_API_KEY, GOOGLE_API_KEY
+from app.core.model import MODEL_PATH
+from app.core.key import VWORLD_API_KEY, LAND_API_KEY, ECOS_API_KEY, GOOGLE_API_KEY
 from app.functions.api import (
     LandFeatureAPI,
     LandUsePlanAPI,
@@ -13,7 +13,7 @@ from app.functions.api import (
     ConsumerPriceIndexAPI,
 )
 from app.functions.convert_code import code2addr
-from app.schemas import LAND
+from app.schemas import land
 from app.models.land import LandInfo
 
 PROMPT = """
@@ -116,7 +116,7 @@ def _get_prompt_land_data(pnu: str, year: int, month: int):
     # 생산자 및 소비자 물가 지수 받아오기
     ppi = ProducerPriceIndexAPI(key=ECOS_API_KEY).get_data(year, month)
     cpi = ConsumerPriceIndexAPI(key=ECOS_API_KEY).get_data(year, month)
-    return LAND.PromptLandData(
+    return land.PromptLandData(
         pnu=pnu,
         feature=land_feature,
         uses=land_uses,
@@ -126,7 +126,7 @@ def _get_prompt_land_data(pnu: str, year: int, month: int):
         cpi=cpi,
     )
 
-def _get_land_trade_data(land: LAND.PromptLandData, year: int, month: int):
+def _get_land_trade_data(land: land.PromptLandData, year: int, month: int):
     # TODO: 유사 토지 거래 사례 받아오기 기능
     lt_api = LandTradeAPI(key=LAND_API_KEY)
     compare_land_trade = None
@@ -134,7 +134,7 @@ def _get_land_trade_data(land: LAND.PromptLandData, year: int, month: int):
     while True:
         results = lt_api.get_data(land.pnu[:5], year, month)
         for result in results:
-            if isinstance(result, LAND.LandTrade):
+            if isinstance(result, land.LandTrade):
                 if result.cls == land.feature.cls:
                     compare_land_trade = result
                     break

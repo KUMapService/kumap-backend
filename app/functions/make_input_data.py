@@ -1,7 +1,7 @@
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from app.config.key import VWORLD_API_KEY, ECOS_API_KEY
+from app.core.key import VWORLD_API_KEY, ECOS_API_KEY
 import app.functions.get_place_data as gpd
 from app.functions.api import LandFeatureAPI, LandUsePlanAPI, FluctuationRateOfLandPriceAPI, ProducerPriceIndexAPI, ConsumerPriceIndexAPI
 

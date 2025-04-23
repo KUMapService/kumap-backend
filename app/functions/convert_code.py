@@ -1,7 +1,7 @@
 import os
 import csv
 from typing import Dict, Union
-from app.config import BASE_DIR
+from app.core import BASE_DIR
 
 
 def code2addr(

@@ -3,18 +3,18 @@ import json
 from typing import List
 from sqlalchemy.orm import Session
 from app import get_db
-from app.config.key import VWORLD_API_KEY
+from app.core.key import VWORLD_API_KEY
 from app.functions.api import GetGeometryDataAPI
 from app.functions import geo
 from app.models.geo import GeometryData
-from app.schemas import GEO, KUMapBaseResponse
+from app.schemas import KUMapBaseResponse, geo
 
 # router
 geo_router = APIRouter(prefix="/geo")
 
 
-@geo_router.get("/get-pnu", response_model=GEO.GetPNUResponse)
-async def get_pnu(request: GEO.GetPNURequest = Depends()):
+@geo_router.get("/get-pnu", response_model=geo.GetPNUResponse)
+async def get_pnu(request: geo.GetPNURequest = Depends()):
     try:
         pnu, address = geo.get_pnu(request.lat, request.lng)
         return {
@@ -30,7 +30,7 @@ async def get_pnu(request: GEO.GetPNURequest = Depends()):
 
 
 @geo_router.get("/get-coord", response_model=KUMapBaseResponse)
-async def get_coord(request: GEO.GetCoordRequest = Depends()):
+async def get_coord(request: geo.GetCoordRequest = Depends()):
     lat, lng = geo.get_coord(request.word)
     if lat is None or lng is None:
         raise HTTPException(status_code=422, detail="address does not exist")
@@ -45,9 +45,9 @@ async def get_coord(request: GEO.GetCoordRequest = Depends()):
 
 
 @geo_router.get(
-    "/auto-complete-address", response_model=GEO.AutoCompleteAddressResponse
+    "/auto-complete-address", response_model=geo.AutoCompleteAddressResponse
 )
-async def auto_complete_address(request: GEO.AutoCompleteAddressRequest = Depends()):
+async def auto_complete_address(request: geo.AutoCompleteAddressRequest = Depends()):
     result = geo.auto_complete_address(request.query)
 
     return {
@@ -57,7 +57,7 @@ async def auto_complete_address(request: GEO.AutoCompleteAddressRequest = Depend
     }
 
 
-@geo_router.get("/get-cadastral-map", response_model=GEO.GetCadastralMapResponse)
+@geo_router.get("/get-cadastral-map", response_model=geo.GetCadastralMapResponse)
 async def get_cadastral_map(
     pnu: List[str] = Query(..., description="Parcel number(s)"),
     db: Session = Depends(get_db),

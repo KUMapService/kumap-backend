@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from app.config.key import KAKAO_API_KEY
+from app.core.key import KAKAO_API_KEY
 from PyKakao import Local
 from enum import Enum
 

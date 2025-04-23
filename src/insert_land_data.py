@@ -3,7 +3,7 @@ import sys
 import json
 
 sys.path.append("/home/kumap/land-price-backend/")
-from app.config import BASE_DIR
+from app.core import BASE_DIR
 from app.functions.geo import get_coord
 from src.database import create_connection, USER_NAME, USER_PW, DATABASE_NAME
 

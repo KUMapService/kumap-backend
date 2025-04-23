@@ -1,37 +1,32 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from app.schemas import KUMapBaseResponse
 
 
-# requests
+# REQUEST DATA
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
-
 
 class DuplicateCheckRequest(BaseModel):
     email: Optional[EmailStr] = None
     nickname: Optional[str] = None
 
-
-class RegisterRequset(BaseModel):
+class RegisterRequest(BaseModel):
     name: str
     nickname: str
     email: EmailStr
     password: str
 
-
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
 
 
-# responses
-class LoginResponse(KUMapBaseResponse):
+# RESPONSE DATA
+class LoginData(BaseModel):
     access_token: str
     refresh_token: str
 
-
-class ProtectedResponse(KUMapBaseResponse):
+class ProtectedUserData(BaseModel):
     email: EmailStr
     name: str
     nickname: str
@@ -39,6 +34,5 @@ class ProtectedResponse(KUMapBaseResponse):
     phone_verified: bool
     image: str
 
-
-class RefreshTokenResponse(KUMapBaseResponse):
+class RefreshTokenData(BaseModel):
     access_token: str
