@@ -4,6 +4,7 @@ from app.middlewares import setup_middlewares
 from app.routes import setup_routers
 from app.schemas import APIResponse
 
+
 # FastAPI 앱 생성
 app = FastAPI(
     title="KUMap API 문서",

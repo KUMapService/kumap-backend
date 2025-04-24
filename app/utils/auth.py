@@ -1,3 +1,4 @@
+import re
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -10,7 +11,6 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def validate_signup_form(email: str, nickname: str, password: str):
-    import re
     if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
         raise ValueError("Invalid email format")
     if not re.match(r"^[\uAC00-\uD7A3a-zA-Z0-9]{1,20}$", nickname):

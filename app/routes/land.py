@@ -1,105 +1,44 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app import get_db
+from app.db.session import get_db
 from app.core.security import JWTBearer
-from app.functions import land
-from app.functions import text_generate
-from app.models.land import LandReport
-from app.models.user import User, UserFavoriteLand
-from app.schemas import KUMapBaseResponse, land
+from app.services.land import land_service
+from app.schemas import APIResponse, land
 
-# router
 land_router = APIRouter(prefix="/land")
 
 
-@land_router.get("/get-land-data", response_model=land.GetLandDataResponse)
+@land_router.get(
+    "/get-land-data",
+    response_model=land.GetLandDataResponse,
+    summary="토지 정보 조회",
+    description="PNU를 기반으로 해당 토지의 정보와 사용자 좋아요 여부, 총 좋아요 수를 조회합니다.",
+)
 def get_land_data(
     request: land.GetLandRequest = Depends(),
     payload: dict = Depends(JWTBearer(auto_error=False)),
     db: Session = Depends(get_db),
 ):
-    like = False
-    total_like = 0
-    if payload:
-        email = payload.get("sub")
-        if email:
-            user = db.query(User).filter(User.email == email).first()
-            if not user:
-                raise HTTPException(
-                    status_code=404, detail="사용자가 존재하지 않습니다."
-                )
-            favorite_land = (
-                db.query(UserFavoriteLand)
-                .filter(
-                    UserFavoriteLand.user_id == user.user_id,
-                    UserFavoriteLand.pnu == request.pnu,
-                )
-                .first()
-            )
-            if favorite_land:
-                like = True
+    return land_service.get_land_detail(request.pnu, payload, db)
 
-    try:
-        data = land.get_land_data(request.pnu, db)
-        total_like = (
-            db.query(UserFavoriteLand)
-            .filter(UserFavoriteLand.pnu == request.pnu)
-            .count()
-        )
-        return {
-            "status": "success",
-            "message": "해당 토지의 정보를 성공적으로 받아왔습니다.",
-            "data": data,
-            "like": like,
-            "total_like": total_like,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@land_router.get("/get-land-predicted-price", response_model=land.GetLandPredictedPriceResponse)
+@land_router.get(
+    "/get-land-predicted-price",
+    response_model=land.GetLandPredictedPriceResponse,
+    summary="토지 예측가 조회",
+    description="PNU를 기반으로 해당 토지의 최신 예측가를 조회합니다.",
+)
 def get_land_predicted_price(
     request: land.GetLandRequest = Depends(), db: Session = Depends(get_db)
 ):
-    #try:
-    predict_price = land.set_land_predict_price_data(request.pnu, db)
-    return {
-        "status": "success",
-        "message": "해당 토지의 예측가를 성공적으로 받아왔습니다.",
-        "predict_price": predict_price,
-    }
-    #except Exception as e:
-    #    raise HTTPException(status_code=500, detail=str(e))
+    return land_service.get_predict_price(request.pnu, db)
 
-
-@land_router.get("/get-land-report", response_model=land.GetLandReportResponse)
+@land_router.get(
+    "/get-land-report",
+    response_model=land.GetLandReportResponse,
+    summary="토지 분석 리포트 생성",
+    description="PNU를 기반으로 토지 분석 보고서를 생성하거나 조회합니다. (LLM 사용)",
+)
 def get_land_report(
-    request: land.GetLandRequest = Depends(),
-    # payload: dict = Depends(JWTBearer(auto_error=False)),
-    db: Session = Depends(get_db),
+    request: land.GetLandRequest = Depends(), db: Session = Depends(get_db)
 ):
-    report_data = db.query(LandReport).filter(LandReport.pnu == request.pnu).first()
-    if report_data is None:
-        report = text_generate.generate(request.pnu, db)
-        new_report = LandReport(
-            pnu=request.pnu,
-            report=report,
-        )
-        db.add(new_report)
-        db.commit()
-        db.refresh(new_report)
-    else:
-        report = report_data.report
-    return {
-        "status": "success",
-        "message": "토지분석서를 성공적으로 받아왔습니다.",
-        "report": report,
-    }
-
-# @land_router.get("/get-bid-data", response_model=LAND.GetLandReportResponse)
-# def get_bid_data(
-#     request: LAND.GetLandRequest = Depends(),
-#     # payload: dict = Depends(JWTBearer(auto_error=False)),
-#     db: Session = Depends(get_db),
-# ):
-    
+    return land_service.get_land_report(request.pnu, db)

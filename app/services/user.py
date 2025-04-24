@@ -1,0 +1,123 @@
+from datetime import datetime
+import os
+import random
+import secrets
+import string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from typing import Optional
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+
+from app.core.config import APP_DIR, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from app.models.user import User, UserFavoriteLand
+from app.services.land import get_land_data
+
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+class UserService:
+    def reset_password(self, email: str, db: Session) -> str:
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise ValueError("이메일이 존재하지 않습니다.")
+
+        random_password = (
+            "".join(random.sample(string.ascii_letters, 8))
+            + "".join(random.sample(string.digits, 3))
+            + "".join(random.sample(string.punctuation, 1))
+        )
+
+        user.password = password_context.hash(random_password)
+        db.commit()
+        
+        self._send_email(email, random_password)
+        return random_password
+
+    def _send_email(self, email: str, new_password: str):
+        msg = MIMEMultipart()
+        msg["From"] = SMTP_USERNAME
+        msg["To"] = email
+        msg["Subject"] = "비밀번호 초기화"
+        body = f"""새로운 비밀번호는 아래와 같습니다.
+
+PW: {new_password}
+
+계정에 접속하여 비밀번호를 변경하실 것을 권장드립니다.
+감사합니다.
+"""
+        msg.attach(MIMEText(body, "plain"))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.sendmail(SMTP_USERNAME, email, msg.as_string())
+        server.quit()
+
+    def get_user_image(self, file_name: Optional[str] = None) -> FileResponse:
+        if not file_name:
+            return FileResponse(os.path.join(APP_DIR, "static/images/default-user-image.png"))
+        return FileResponse(os.path.join(APP_DIR, "static/images/", file_name))
+
+    def modify_user_info(
+        self,
+        user: User,
+        name: str,
+        nickname: str,
+        phone: str,
+        is_image_deleted: bool,
+        image: Optional[UploadFile],
+    ):
+        if is_image_deleted:
+            user.profile_image_url = None
+        elif image:
+            current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+            file_extension = os.path.splitext(image.filename)[1]
+            saved_file_name = f"{current_time}_{secrets.token_hex(16)}{file_extension}"
+            file_path = os.path.join(APP_DIR, "static/images/", saved_file_name)
+            with open(file_path, "wb+") as b:
+                b.write(image.file.read())
+            user.profile_image_url = "/user/images/" + saved_file_name
+
+        user.name = name
+        user.nickname = nickname
+        user.phone = phone
+
+    def change_password(self, user: User, current_password: str, new_password: str):
+        if not password_context.verify(current_password, user.password):
+            raise ValueError("비밀번호가 잘못되었습니다.")
+        user.password = password_context.hash(new_password)
+
+    def toggle_favorite(self, user: User, pnu: str, db: Session) -> bool:
+        favorite_land = (
+            db.query(UserFavoriteLand)
+            .filter(
+                UserFavoriteLand.user_id == user.user_id,
+                UserFavoriteLand.pnu == pnu,
+            )
+            .first()
+        )
+
+        if favorite_land:
+            db.delete(favorite_land)
+            db.commit()
+            return False
+        else:
+            new_favorite = UserFavoriteLand(user_id=user.user_id, pnu=pnu)
+            db.add(new_favorite)
+            db.commit()
+            return True
+
+    def get_favorite_lands(self, user: User, db: Session):
+        favorites = (
+            db.query(UserFavoriteLand)
+            .filter(UserFavoriteLand.user_id == user.user_id)
+            .all()
+        )
+        return [get_land_data(pnu=fav.pnu, db=db) for fav in favorites]
+
+
+user_service = UserService()

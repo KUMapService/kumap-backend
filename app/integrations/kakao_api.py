@@ -1,13 +1,15 @@
 from PyKakao import Local
-from app.core.key import KAKAO_API_KEY
-from app.functions.convert_code import code2addr
+
+from app.core.config import KAKAO_API_KEY
+from app.utils.convert_code import code2addr
+
+_local = Local(service_key=KAKAO_API_KEY)
 
 
-def get_pnu(lat: float, lng: float) -> tuple:
+def kakao_get_pnu(lat: float, lng: float) -> tuple:
     try:
-        local = Local(service_key=KAKAO_API_KEY)
-        request_address = local.geo_coord2address(lng, lat, dataframe=False)
-        request_region = local.geo_coord2regioncode(lng, lat, dataframe=False)
+        request_address = _local.geo_coord2address(lng, lat, dataframe=False)
+        request_region = _local.geo_coord2regioncode(lng, lat, dataframe=False)
 
         if request_region is None:
             return None, None
@@ -31,10 +33,8 @@ def get_pnu(lat: float, lng: float) -> tuple:
         print(e)
         return None, None
 
-
-def get_pnu_from_addr(word: str):
-    local = Local(service_key=KAKAO_API_KEY)
-    address = local.search_address(word, dataframe=False)
+def kakao_get_pnu_from_addr(word: str):
+    address = _local.search_address(word, dataframe=False)
 
     if len(address["documents"]) == 0:
         return None
@@ -42,9 +42,8 @@ def get_pnu_from_addr(word: str):
     pnu = pnu if pnu != "" else address["documents"][0]["address"]["h_code"]
     return pnu
 
-def get_coord(word: str) -> tuple:
-    local = Local(service_key=KAKAO_API_KEY)
-    address = local.search_address(word, dataframe=False)
+def kakao_get_coord(word: str) -> tuple:
+    address = _local.search_address(word, dataframe=False)
 
     if len(address["documents"]) == 0:
         return None, None
@@ -52,11 +51,9 @@ def get_coord(word: str) -> tuple:
     lat = float(address["documents"][0]["y"])
     return lat, lng
 
-
 def auto_complete_address(query: str):
     try:
-        local = Local(service_key=KAKAO_API_KEY)
-        response = local.search_keyword(query, dataframe=False, size=15)["documents"]
+        response = _local.search_keyword(query, dataframe=False, size=15)["documents"]
         related_search = []
         for r in response:
             related_search.append(

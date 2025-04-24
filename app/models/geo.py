@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Text
 from sqlalchemy.types import Numeric
-from app import Base
+
+from app.db.base import Base
 
 
 class GeometryData(Base):

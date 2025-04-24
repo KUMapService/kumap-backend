@@ -1,47 +1,41 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-from app.schemas import KUMapBaseResponse
+from typing import Optional, List
 
 
-# data schema
+# DATA SCHEMA
 class AddressSchema(BaseModel):
-    sido: Optional[str] = Field(None, description="Province/City")
-    sigungu: Optional[str] = Field(None, description="City/District")
-    eupmyeondong: Optional[str] = Field(None, description="Township/Village")
-    donglee: Optional[str] = Field(None, description="Neighborhood")
-    detail: Optional[str] = Field(None, description="Detailed address (if applicable)")
-    fulladdr: Optional[str] = Field(None, description="Full formatted address")
+    sido: Optional[str] = Field(None, description="시/도")
+    sigungu: Optional[str] = Field(None, description="시/군/구")
+    eupmyeondong: Optional[str] = Field(None, description="읍/면/동")
+    donglee: Optional[str] = Field(None, description="동/리 등 세부지역")
+    detail: Optional[str] = Field(None, description="상세주소 (해당되는 경우)")
+    fulladdr: Optional[str] = Field(None, description="전체 주소 문자열")
 
 
-# requests
+# REQUEST DATA
 class GetPNURequest(BaseModel):
-    lat: float = Field(..., description="Latitude coordinate")
-    lng: float = Field(..., description="Longitude coordinate")
-
+    lat: float = Field(..., description="위도 좌표")
+    lng: float = Field(..., description="경도 좌표")
 
 class GetCoordRequest(BaseModel):
-    word: Optional[str] = Field(None, description="Land parcel address")
-
+    word: Optional[str] = Field(None, description="주소 문자열 (예: 서울특별시 강남구 ...)")
 
 class AutoCompleteAddressRequest(BaseModel):
-    query: str = Field(..., description="Search query")
+    query: str = Field(..., description="주소 자동완성용 검색어")
 
 
-# responses
-class GetPNUResponse(KUMapBaseResponse):
-    pnu: str = Field(..., description="19-digit PNU code")
-    address: AddressSchema = Field(..., description="Land parcel address details")
+# RESPONSE DATA
+class PNUAddressData(BaseModel):
+    pnu: str = Field(..., description="19자리 PNU 코드")
+    address: AddressSchema = Field(..., description="해당 PNU에 대한 주소 정보")
 
+class CoordAddressData(BaseModel):
+    lat: float = Field(..., description="위도")
+    lng: float = Field(..., description="경도")
+    address: str = Field(..., description="주소 문자열")
 
-class GetCoordResponse(KUMapBaseResponse):
-    lat: float = Field(..., description="Latitude coordinate")
-    lng: float = Field(..., description="Longitude coordinate")
-    address: str = Field(..., description="Land parcel address")
+class AutoCompleteAddressData(BaseModel):
+    related_search: List[dict] = Field(..., description="자동완성된 주소 검색 결과 목록")
 
-
-class AutoCompleteAddressResponse(KUMapBaseResponse):
-    related_search: list
-
-
-class GetCadastralMapResponse(KUMapBaseResponse):
-    polygons: list
+class CadastralMapData(BaseModel):
+    polygons: List[List[List[List[List[float]]]]] = Field(..., description="지적도 좌표 목록 (다각형)")

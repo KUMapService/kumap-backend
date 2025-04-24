@@ -18,13 +18,6 @@ class AuthService:
         """
         사용자가 입력한 이메일과 비밀번호를 검증하고,
         Access/Refresh 토큰을 발급한다.
-
-        Args:
-            request (LoginRequest): 로그인 요청 정보
-            db (Session): 데이터베이스 세션
-
-        Returns:
-            Tuple[str, str]: (access_token, refresh_token)
         """
         user = db.query(User).filter(User.email == request.email).first()
         if not user or not auth.verify_password(request.password, user.password):
@@ -44,13 +37,6 @@ class AuthService:
     def signup(self, request, db: Session) -> None:
         """
         사용자 회원가입 처리.
-
-        Args:
-            request (RegisterRequest): 회원가입 요청 정보
-            db (Session): 데이터베이스 세션
-
-        Raises:
-            HTTPException: 이메일/닉네임 중복 또는 형식 오류 발생시
         """
         try:
             auth.validate_signup_form(request.email, request.nickname, request.password)
@@ -81,13 +67,6 @@ class AuthService:
     def duplicate_check(self, request, db: Session) -> None:
         """
         이메일 또는 닉네임 중복 확인.
-
-        Args:
-            request (DuplicateCheckRequest): 중복 확인 요청 정보
-            db (Session): 데이터베이스 세션
-
-        Raises:
-            HTTPException: 중복된 경우 409 에러 반환
         """
         if request.email and db.query(User).filter(User.email == request.email).first():
             raise HTTPException(

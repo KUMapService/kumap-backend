@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import Optional
-
 from fastapi import Request, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -51,9 +50,7 @@ class JWTBearer:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """엑세스 토큰 생성 함수
-
-    """
+    """엑세스 토큰 생성 함수."""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -65,6 +62,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 def create_refresh_token(data: dict) -> str:
+    """리프레시 토큰 생성 함수."""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=7)   # 보통 리프레시 토큰은 7일짜리
     to_encode.update({"exp": expire})

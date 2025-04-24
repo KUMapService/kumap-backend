@@ -1,7 +1,8 @@
-from app.schemas import KUMapBaseResponse
-from app.schemas.geo import AddressSchema
 from pydantic import BaseModel, Field, NaiveDatetime
 from typing import Optional, List
+
+from app.schemas.geo import AddressSchema
+
 
 # dataclasses
 class LandFeature(BaseModel):
@@ -141,14 +142,14 @@ class GetLandRequest(BaseModel):
 
 
 # responses
-class GetLandDataResponse(KUMapBaseResponse):
+class GetLandDataResponse(BaseModel):
     data: Land = Field(..., description="토지 정보 데이터")
     like: bool = Field(..., description="해당 토지의 좋아요 여부")
     total_like: int = Field(..., description="해당 토지의 좋아요 수")
 
-class GetLandPredictedPriceResponse(KUMapBaseResponse):
+class GetLandPredictedPriceResponse(BaseModel):
     predict_price: float = Field(None, description="예측 실거래가")
 
-class GetLandReportResponse(KUMapBaseResponse):
+class GetLandReportResponse(BaseModel):
     report: str = Field(..., description="토지분석서 내용")
     

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Text, TIMESTAMP
 from sqlalchemy.sql import func
-from app import Base
+
+from app.db.base import Base
 
 
 class LandInfo(Base):

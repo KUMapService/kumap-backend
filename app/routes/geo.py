@@ -1,96 +1,84 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-import json
-from typing import List
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from app import get_db
-from app.core.key import VWORLD_API_KEY
-from app.functions.api import GetGeometryDataAPI
-from app.functions import geo
-from app.models.geo import GeometryData
-from app.schemas import KUMapBaseResponse, geo
+from typing import List
 
-# router
+from app.db.session import get_db
+from app.services.land.geo import geo_service
+from app.schemas import APIResponse, geo
+
 geo_router = APIRouter(prefix="/geo")
 
 
-@geo_router.get("/get-pnu", response_model=geo.GetPNUResponse)
+@geo_router.get(
+    "/get-pnu", 
+    response_model=APIResponse, 
+    summary="위경도로 PNU 조회", 
+    description="위도/경도 값을 기준으로 해당 위치의 PNU 코드와 행정주소를 반환합니다."
+)
 async def get_pnu(request: geo.GetPNURequest = Depends()):
-    try:
-        pnu, address = geo.get_pnu(request.lat, request.lng)
-        return {
-            "status": "success",
-            "message": "해당 위치의 PNU를 성공적으로 받아왔습니다.",
-            "pnu": pnu,
-            "address": address,
-            "lat": request.lat,
-            "lng": request.lng,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@geo_router.get("/get-coord", response_model=KUMapBaseResponse)
-async def get_coord(request: geo.GetCoordRequest = Depends()):
-    lat, lng = geo.get_coord(request.word)
-    if lat is None or lng is None:
-        raise HTTPException(status_code=422, detail="address does not exist")
-
-    return {
-        "status": "success",
-        "message": "해당 주소의 위경도 데이터를 받아왔습니다.",
-        "lat": lat,
-        "lng": lng,
-        "address": request.word,
-    }
-
+    pnu, address = geo_service.get_pnu(request)
+    return APIResponse(
+        status="success",
+        message="해당 위치의 PNU를 성공적으로 받아왔습니다.",
+        data=geo.PNUAddressData(
+            pnu=pnu,
+            address=address,
+        ),
+    )
 
 @geo_router.get(
-    "/auto-complete-address", response_model=geo.AutoCompleteAddressResponse
+    "/get-coord", 
+    response_model=APIResponse, 
+    summary="주소로 위경도 조회", 
+    description="주소 문자열을 기준으로 위도/경도 좌표를 반환합니다. 카카오 API를 사용합니다."
+)
+async def get_coord(request: geo.GetCoordRequest = Depends()):
+    lat, lng = geo_service.get_coord(request)
+    return APIResponse(
+        status="success",
+        message="해당 주소의 위경도 데이터를 받아왔습니다.",
+        data=geo.CoordAddressData(
+            lat=lat,
+            lng=lng,
+            address=request.word,
+        ),
+    )
+
+@geo_router.get(
+    "/auto-complete-address",
+    response_model=APIResponse,
+    summary="주소 자동완성 검색",
+    description="입력한 문자열을 기반으로 관련된 도로명/지번 주소 후보를 반환합니다.",
 )
 async def auto_complete_address(request: geo.AutoCompleteAddressRequest = Depends()):
-    result = geo.auto_complete_address(request.query)
+    result = geo_service.auto_complete_address(request)
+    return APIResponse(
+        status="success",
+        message="연관된 도로명/지번 주소를 받아왔습니다.",
+        data=geo.AutoCompleteAddressData(
+            related_search=result,
+        ),
+    )
 
-    return {
-        "status": "success",
-        "message": "해당 주소의 위경도 데이터를 받아왔습니다.",
-        "related_search": result,
-    }
-
-
-@geo_router.get("/get-cadastral-map", response_model=geo.GetCadastralMapResponse)
+@geo_router.get(
+    "/get-cadastral-map",
+    response_model=APIResponse,
+    summary="지적도(Polygon) 데이터 반환",
+    description="""
+19자리 PNU 코드를 통해 토지의 지적도 데이터를 가져옵니다.  
+PNU 코드가 2~8자리일 경우 DB에 저장된 병합 데이터(`multi_polygon`)에서 불러옵니다.  
+API 호출 시 최대 10개 이하 권장.
+""",
+)
 async def get_cadastral_map(
-    pnu: List[str] = Query(..., description="Parcel number(s)"),
+    pnu: List[str] = Query(..., description="토지의 PNU 코드"),
     db: Session = Depends(get_db),
 ):
-    result = []
-    for pnu_code in pnu:
-        if len(pnu_code) == 19:
-            geo_api = GetGeometryDataAPI(key=VWORLD_API_KEY)
-            response = geo_api.get_data(pnu=pnu_code)
-            if not response:
-                raise HTTPException(
-                    status_code=422,
-                    detail="해당 토지의 지적도 데이터가 존재하지 않습니다.",
-                )
-            coordinates = response["features"][0]["geometry"]["coordinates"]
-            cleaned_coords = [
-                [[float(point[0]), float(point[1])] for point in polygon]
-                for polygon in coordinates[0]
-            ]
-            result.append(cleaned_coords)
-        else:
-            response = (
-                db.query(GeometryData).filter(GeometryData.pnu == pnu_code).first()
-            )
-            if not response:
-                raise HTTPException(
-                    status_code=422,
-                    detail="해당 토지의 지적도 데이터가 존재하지 않습니다.",
-                )
-            result.append(json.loads(response.multi_polygon))
-
-    return {
-        "status": "success",
-        "message": "토지 지적도를 받아왔습니다.",
-        "polygons": result,
-    }
+    polygons = geo_service.get_cadastral_map(pnu, db)
+    return APIResponse(
+        status="success",
+        message="토지 지적도를 받아왔습니다.",
+        data=geo.CadastralMapData(
+            polygons=polygons,
+        ),
+    )
