@@ -13,9 +13,9 @@ def create_database(connection: object, query: str) -> None:
     cursor = connection.cursor()
     try:
         cursor.execute(query)
-        print("# Database created successfully.")
+        print(f">> ✅ 데이터베이스가 성공적으로 생성되었습니다. (데이터베이스: {DATABASE_NAME})")
     except Error as err:
-        print(f'Error: "{err}"')
+        print(f'>> ❌ Error: "{err}"')
 
 def create_user(connection: object, username: str, password: str) -> None:
     cursor = connection.cursor()
@@ -23,9 +23,9 @@ def create_user(connection: object, username: str, password: str) -> None:
         cursor.execute(
             f"CREATE USER '{username}'@'localhost' IDENTIFIED BY '{password}';"
         )
-        print("# User created successfully.")
+        print(f">> ✅ 데이터베이스 사용자가 성공적으로 생성되었습니다. (사용자: {USER_NAME})")
     except Error as err:
-        print(f'Error: "{err}"')
+        print(f'>> ❌ Error: "{err}"')
 
 def grant_privileges(connection: object, username: str, database: str) -> None:
     cursor = connection.cursor()
@@ -34,9 +34,9 @@ def grant_privileges(connection: object, username: str, database: str) -> None:
             f"GRANT ALL PRIVILEGES ON {database}.* TO '{username}'@'localhost';"
         )
         connection.commit()
-        print("# Privileges granted successfully.")
+        print(f">> ✅ 권한이 성공적으로 부여되었습니다. ({USER_NAME} >> {DATABASE_NAME})")
     except Error as err:
-        print(f'Error: "{err}"')
+        print(f'>> ❌ Error: "{err}"')
 
 
 if __name__ == "__main__":
@@ -48,4 +48,4 @@ if __name__ == "__main__":
 
     if connection:
         connection.close()
-        print("# MySQL connection is closed.")
+        print(">> ✅ MySQL 연결이 종료되었습니다.")

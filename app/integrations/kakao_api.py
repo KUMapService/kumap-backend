@@ -1,12 +1,14 @@
 from PyKakao import Local
 
 from app.core.config import KAKAO_API_KEY
+from app.enums.types import Category
 from app.utils.convert_code import code2addr
 
 _local = Local(service_key=KAKAO_API_KEY)
 
 
 def kakao_get_pnu(lat: float, lng: float) -> tuple:
+    """위도, 경도로부터 PNU 코드 및 주소 정보를 가져온다."""
     try:
         request_address = _local.geo_coord2address(lng, lat, dataframe=False)
         request_region = _local.geo_coord2regioncode(lng, lat, dataframe=False)
@@ -34,6 +36,7 @@ def kakao_get_pnu(lat: float, lng: float) -> tuple:
         return None, None
 
 def kakao_get_pnu_from_addr(word: str):
+    """주소 문자열로부터 PNU 코드를 가져온다."""
     address = _local.search_address(word, dataframe=False)
 
     if len(address["documents"]) == 0:
@@ -43,6 +46,7 @@ def kakao_get_pnu_from_addr(word: str):
     return pnu
 
 def kakao_get_coord(word: str) -> tuple:
+    """주소 문자열로부터 (위도, 경도) 좌표를 가져온다."""
     address = _local.search_address(word, dataframe=False)
 
     if len(address["documents"]) == 0:
@@ -52,6 +56,7 @@ def kakao_get_coord(word: str) -> tuple:
     return lat, lng
 
 def auto_complete_address(query: str):
+    """주소 자동완성 결과를 가져온다."""
     try:
         response = _local.search_keyword(query, dataframe=False, size=15)["documents"]
         related_search = []
@@ -67,3 +72,30 @@ def auto_complete_address(query: str):
     except:  # noqa: E722
         related_search = []
     return related_search
+
+def get_nearest_place_distance(address: str) -> dict:
+    """주소 기준으로 각 카테고리별 가장 가까운 시설 거리(미터)를 가져온다."""
+    sa = _local.search_address(address, dataframe=False)
+    if not sa["documents"]:
+        return None
+    x, y = sa["documents"][0]["x"], sa["documents"][0]["y"]
+    distances = {}
+    for category in Category.list():
+        result = _local.search_category(category, x=x, y=y, radius=20000, sort="distance")
+        if not result["documents"]:
+            distances[category] = 20000
+        else:
+            distances[category] = int(result["documents"][0]["distance"])
+    return distances
+
+def get_place_count_in_radius(address: str, radius: 25) -> dict:
+    """주소 기준으로 특정 반경 안에 존재하는 각 카테고리별 시설 개수를 가져온다."""
+    sa = _local.search_address(address, dataframe=False)
+    if not sa["documents"]:
+        return None
+    x, y = sa["documents"][0]["x"], sa["documents"][0]["y"]
+    counts = {}
+    for category in Category.list():
+        result = _local.search_category(category, x=x, y=y, radius=radius)
+        counts[category] = int(result["meta"]["total_count"])
+    return counts

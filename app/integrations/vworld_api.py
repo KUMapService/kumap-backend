@@ -8,7 +8,10 @@ from app.utils.date import get_prev_month
 
 
 def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
-    """PNU와 기준연도를 바탕으로 토지 특성 정보를 가져옵니다."""
+    """
+    PNU와 기준연도를 바탕으로 토지 특성 정보를 가져옴.<br/>
+    참조: https://www.vworld.kr/dtna/dtna_apiSvcFc_s001.do
+    """
     url = "https://api.vworld.kr/ned/data/getLandCharacteristics"
     params = {
         "key": VWORLD_API_KEY,
@@ -18,6 +21,7 @@ def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
         "pnu": pnu,
         "stdrYear": year,
     }
+
     response = requests.get(url, params=params).json()
     data = response.get("landCharacteristicss", {}).get("field", None)
 
@@ -25,18 +29,33 @@ def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
         return None if year < 2015 else get_land_feature(pnu, year - 1)
 
     data = data[0] if isinstance(data, list) else data
+
     return LandFeature(
         pnu=data["pnu"],
-        register=data["regstrSeCodeNm"],
-        cls=data["lndcgrCodeNm"],
-        zoning=data["prposArea1Nm"],
-        usage=data["ladUseSittnNm"],
-        height=data["tpgrphHgCodeNm"],
-        form=data["tpgrphFrmCodeNm"],
-        road_side=data["roadSideCodeNm"],
-        area=float(data["lndpclAr"]),
-        official_land_price=float(data["pblntfPclnd"]),
+        legal_dong_code=data["ldCode"],
+        legal_dong=data["ldCodeNm"],
+        land_reg_code=data["regstrSeCode"],
+        land_reg=data["regstrSeCodeNm"],
+        land_lot_number=data["mnnmSlno"],
         stdr_year=data["stdrYear"],
+        stdr_month=data["stdrMt"],
+        land_cls_code=data["lndcgrCode"],
+        land_cls=data["lndcgrCodeNm"],
+        land_area=float(data["lndpclAr"]),
+        land_zoning_code=data["prposArea1"],
+        land_zoning=data["prposArea1Nm"],
+        land_zoning2_code=data["prposArea2"],
+        land_zoning2=data["prposArea2Nm"],
+        land_usage_code=data["ladUseSittn"],
+        land_usage=data["ladUseSittnNm"],
+        land_height_code=data["tpgrphHgCode"],
+        land_height=data["tpgrphHgCodeNm"],
+        land_form_code=data["tpgrphFrmCode"],
+        land_form=data["tpgrphFrmCodeNm"],
+        road_side_code=data["roadSideCode"],
+        road_side=data["roadSideCodeNm"],
+        official_price=float(data["pblntfPclnd"]),
+        last_update_date=data.get("lastUpdtDt"),
     )
 
 def get_land_use_plan(pnu: str, return2name: bool = False) -> Optional[str]:

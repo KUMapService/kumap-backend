@@ -14,7 +14,7 @@ from passlib.context import CryptContext
 
 from app.core.config import APP_DIR, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 from app.models.user import User, UserFavoriteLand
-from app.services.land import get_land_data
+from app.services.land import land_service
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -117,7 +117,7 @@ PW: {new_password}
             .filter(UserFavoriteLand.user_id == user.user_id)
             .all()
         )
-        return [get_land_data(pnu=fav.pnu, db=db) for fav in favorites]
+        return [land_service.get_land_data(pnu=fav.pnu, db=db) for fav in favorites]
 
 
 user_service = UserService()

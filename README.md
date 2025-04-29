@@ -74,6 +74,7 @@ ECOS_API_KEY=
 KAKAO_JAVASCRIPT_API_KEY=
 MODEL_PATH=
 GOOGLE_API_KEY=
+LLM_MODEL=
 ```
 
 #### 3. Run DB migration (First Time ONLY)

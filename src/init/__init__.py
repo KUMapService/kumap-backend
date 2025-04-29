@@ -17,9 +17,9 @@ def create_connection(
             conn_args["database"] = database
 
         connection = mysql.connector.connect(**conn_args)
-        print(f"# ✅ MySQL 연결 성공: {user}@{host}{'/' + database if database else ''}")
+        print(f">> ✅ MySQL 연결 성공: {user}@{host}{'/' + database if database else ''}")
         return connection
 
     except Error as e:
-        print(f"# ❌ MySQL 연결 실패: {e}")
+        print(f">> ❌ MySQL 연결 실패: {e}")
         return None

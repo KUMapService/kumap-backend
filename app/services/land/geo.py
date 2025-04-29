@@ -11,7 +11,8 @@ from app.schemas import geo
 class GeoService:
     def get_pnu(self, request: geo.GetPNURequest):
         pnu, address = kakao_get_pnu(request.lat, request.lng)
-        if not pnu:
+        print(pnu, address, flush=True)
+        if not pnu or not address:
             raise HTTPException(status_code=500, detail="PNU 정보를 가져오지 못했습니다.")
         return pnu, address
 
