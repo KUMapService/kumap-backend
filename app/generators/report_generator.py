@@ -52,7 +52,7 @@ def generate_land_report(pnu: str, predicted_price: float) -> str:
         target_info=land_data.return_to_prompt(),
         tree_text=tree_text,
         compare_info=compare_land if compare_land else "",
-        target_price=predicted_price,
+        target_price=predicted_price * land_data.feature.land_area,
     )
     print(f"[Created prompt] {time.time() - start:.2f}초", flush=True)
 
