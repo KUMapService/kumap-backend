@@ -2,7 +2,9 @@ from pydantic import BaseModel, Field, NaiveDatetime
 from typing import Optional, List
 
 from app.enums.types import Category
+from app.schemas.auction import Auction
 from app.schemas.geo import AddressSchema
+from app.schemas.listing import Listing
 
 
 # API DATA SCHEMA
@@ -125,42 +127,6 @@ class LandDetail(BaseModel):
     use_plan: str = Field(..., description="이용계획")
     stdr_year: str = Field(..., description="기준년도")
     stdr_month: str = Field(..., description="기준월")
-
-class AuctionObj(BaseModel):
-    case_cd: str = Field(..., description="사건번호")
-    obj_nm: str = Field(..., description="물건번호")
-    court_in_charge: str = Field(..., description="담당")
-    pnu: str = Field(..., description="PNU코드")
-    address: str = Field(..., description="주소")
-    summary: str = Field(..., description="설명")
-
-class Auction(BaseModel):
-    case_cd: str = Field(..., description="사건번호")
-    case_nm: str = Field(..., description="사건번호")
-    obj_nm: str = Field(..., description="물건번호")
-    case_zoning: str = Field(..., description="감정가")
-    appraisal_price: float = Field(..., description="감정가")
-    min_price: float = Field(..., description="최저가")
-    auction_type: str = Field(..., description="입찰방법")
-    auction_date: str = Field(..., description="매각기일")
-    court_in_charge: str = Field(..., description="담당")
-    court_detail: str = Field(..., description="매각기일")
-    case_reception: str = Field(..., description="사건접수")
-    auction_start_date: str = Field(..., description="경매개시일")
-    div_request_deadline: str = Field(..., description="배당요구종기")
-    billable_amount: float = Field(..., description="청구금액")
-    date_list: list = Field(..., description="기일내역")
-    obj_list: List[AuctionObj] = Field(..., description="물건내역")
-
-class Listing(BaseModel):
-    pnu: str = Field(..., description="PNU코드")
-    user_id: int = Field(..., description="사용자 ID")
-    nickname: str = Field(..., description="사용자 닉네임")
-    lat: float = Field(..., description="위도")
-    lng: float = Field(..., description="경도")
-    area: float = Field(..., description="토지 면적")
-    price: float = Field(..., description="토지 가격")
-    summary: str = Field(..., description="토지 설명")
 
 
 # REQUEST DATA

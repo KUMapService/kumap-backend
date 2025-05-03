@@ -30,7 +30,7 @@ setup_routers(app)
 
 # 서버 상태 체크
 @app.get(
-    "/", 
+    "/api", 
     response_model=APIResponse, 
     responses=error.make_error_responses(need_422=False, need_500=True),
     summary="서버 상태 확인", 

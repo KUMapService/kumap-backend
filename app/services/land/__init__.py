@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from app.enums.types import ReactionType
 from app.models.land import LandInfo, LandReport
 from app.models.user import User, UserFavoriteLand, UserLandReportReaction
+from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
 from app.integrations.vworld_api import get_land_feature, get_land_use_plan
 from app.integrations.kakao_api import kakao_get_coord
@@ -147,6 +148,16 @@ class LandService:
         return predicted_data
     
     def get_land_report(self, pnu: str, payload: dict, db: Session) -> land.LandReportData:
+        if not payload:
+            return land.LandReportData(
+            pnu="0",
+            content=LAND_REPORT_FOR_GUEST,
+            like_count=526,
+            dislike_count=222,
+            generated_at=get_now(),
+            is_liked=False,
+            is_disliked=False,
+        )
         land_report = db.query(LandReport).filter_by(pnu=pnu).first()
         if not land_report:
             land_info = db.query(LandInfo).filter_by(pnu=pnu).first()
