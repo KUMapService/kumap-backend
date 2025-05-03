@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from app.enums.types import ReactionType
-from app.models.land import LandInfo, LandReport
+from app.models.land import LandInfo, LandReport, LandListing
 from app.models.user import User, UserFavoriteLand, UserLandReportReaction
 from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
@@ -61,6 +61,7 @@ class LandService:
         if not address:
             raise HTTPException(status_code=404, detail="토지 정보를 찾을 수 없습니다.")
         lat, lng = kakao_get_coord(address.fulladdr)
+        # 토지 정보 받아오기
         land_info = db.query(LandInfo).filter_by(pnu=pnu).first()
         # 데이터베이스에 해당 토지에 대한 정보가 있을 경우
         if land_info:
@@ -118,16 +119,38 @@ class LandService:
 
     def get_land_detail(self, pnu: str, payload: dict, db: Session) -> Tuple[land.LandData, bool]:
         is_like = False
+        user_id = None
         if payload:
             email = payload.get("sub")
             user = db.query(User).filter_by(email=email).first()
             if not user:
                 raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
             is_like = db.query(UserFavoriteLand).filter_by(user_id=user.user_id, pnu=pnu).first() is not None
+            user_id = user.user_id
 
         data = self.get_land_data(pnu, db)
         if not data:
             raise HTTPException(status_code=500, detail="토지 정보를 받아오지 못했습니다.")
+        
+        # 매물 정보 받아오기
+        listing_data = db.query(LandListing).filter_by(pnu=pnu).first()
+        if listing_data:
+            # 매물 정보 파싱
+            land_listing = land.Listing(
+                pnu=listing_data.pnu,
+                user_id=listing_data.user_id,
+                nickname=listing_data.user.nickname,
+                lat=listing_data.lat,
+                lng=listing_data.lng,
+                area=listing_data.area,
+                price=listing_data.price,
+                summary=listing_data.summary,
+                reg_date=listing_data.registered_at,
+                is_my_land=True if user_id == listing_data.user_id else False,
+            )
+            data.listing = land_listing
+        # TODO: 경매 정보 받아오기 및 파싱
+
         return data, is_like
 
     def get_predict_price(self, pnu: str, db: Session) -> land.PredictedPriceData:

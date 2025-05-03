@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, NaiveDatetime
 from typing import List
 
 
@@ -9,9 +9,10 @@ class Listing(BaseModel):
     nickname: str = Field(..., description="사용자 닉네임")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
-    area: float = Field(..., description="토지 면적")
-    price: float = Field(..., description="토지 가격")
-    summary: str = Field(..., description="토지 설명")
+    area: float = Field(..., description="매물 면적")
+    price: float = Field(..., description="매물 가격")
+    summary: str = Field(..., description="매물 설명")
+    reg_date: NaiveDatetime = Field(..., descript="매물 등록 일자")
     is_my_land: bool = Field(..., description="사용자 매물 여부")
 
 
