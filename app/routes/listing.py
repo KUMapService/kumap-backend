@@ -25,27 +25,9 @@ def get_listing_data(
     listings = listing_service.get_listing_data(lat=request.lat, lng=request.lng, level=request.level, payload=payload, db=db)
     return APIResponse[listing.LandListings](
         status=Status.SUCCESS,
-        message="해당 토지의 데이터를 성공적으로 불러왔습니다.",
+        message="해당 지역의 매물 데이터를 성공적으로 불러왔습니다.",
         data=listings,
 	)
-
-# @listing_router.get(
-#     "/get-user-listing",
-#     response_model=APIResponse[land.PredictedPriceData],
-#     responses=error.make_error_responses(need_404=True),
-#     summary="사용자의 토지 매물 목록 조회",
-#     description="사용자가 올린 매물 목록을 조회합니다.",
-# )
-# def get_user_listing_data(
-#     request: land.GetLandRequest = Depends(), 
-#     db: Session = Depends(get_db)
-# ):
-#     data = land_service.get_predict_price(pnu=request.pnu, db=db)
-#     return APIResponse[land.PredictedPriceData](
-#         status=Status.SUCCESS,
-#         message="토지 예측가를 성공적으로 불러왔습니다.",
-#         data=data,
-#     )
 
 @listing_router.get(
     "/register-listing",

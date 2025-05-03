@@ -5,7 +5,6 @@ from typing import List
 # DATA SCHEMA
 class Listing(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    user_id: int = Field(..., description="사용자 ID")
     nickname: str = Field(..., description="사용자 닉네임")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")

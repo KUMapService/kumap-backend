@@ -138,7 +138,6 @@ class LandService:
             # 매물 정보 파싱
             land_listing = land.Listing(
                 pnu=listing_data.pnu,
-                user_id=listing_data.user_id,
                 nickname=listing_data.user.nickname,
                 lat=listing_data.lat,
                 lng=listing_data.lng,
@@ -146,7 +145,7 @@ class LandService:
                 price=listing_data.price,
                 summary=listing_data.summary,
                 reg_date=listing_data.registered_at,
-                is_my_land=True if user_id == listing_data.user_id else False,
+                is_my_land=(user_id == listing_data.user_id),
             )
             data.listing = land_listing
         # TODO: 경매 정보 받아오기 및 파싱
