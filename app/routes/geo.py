@@ -87,3 +87,17 @@ async def get_cadastral_map(
             polygons=polygons,
         ),
     )
+
+@geo_router.get(
+    "/get-address-data",
+    response_model=APIResponse[dict],
+    summary="시도/시군구/읍면동 데이터 반환",
+    description="시도/시군구/읍면동 데이터를 반환합니다."
+)
+def get_address_data():
+    data = geo_service.get_address_data()
+    return APIResponse[dict](
+        status=Status.SUCCESS,
+        message="주소 데이터를 불러왔습니다.",
+        data=data,
+    )
