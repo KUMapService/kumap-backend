@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -22,12 +23,32 @@ def get_listing_data(
     payload: dict = Depends(JWTBearer(auto_error=False)),
     db: Session = Depends(get_db),
 ):
-    listings = listing_service.get_listing_data(lat=request.lat, lng=request.lng, level=request.level, payload=payload, db=db)
+    listings = listing_service.get_listing_data(pnu_prefix=request.pnu_prefix, page=request.page, size=request.size, payload=payload, db=db)
     return APIResponse[listing.LandListings](
         status=Status.SUCCESS,
         message="해당 지역의 매물 데이터를 성공적으로 불러왔습니다.",
         data=listings,
 	)
+
+@listing_router.get(
+    "/get-marker",
+    response_model=APIResponse[List[listing.ListingMarker]],
+    summary="토지 매물 마커 조회",
+    description="영역 내의 토지 매물 마커를 조회합니다.",
+)
+def get_listing_marker(
+    request: listing.GetListingMarkerRequest = Depends(),
+    db: Session = Depends(get_db)
+):
+    data = listing_service.get_listing_marker(
+        req=request,
+        db=db
+    )
+    return APIResponse[List[listing.ListingMarker]](
+        status=Status.SUCCESS,
+        message="영역 내 토지 매물 마커를 조회하였습니다.",
+        data=data,
+    )
 
 @listing_router.get(
     "/register-listing",
@@ -40,11 +61,7 @@ def register_listing(
     payload: dict = Depends(JWTBearer(auto_error=False)),
     db: Session = Depends(get_db)
 ):
-    listing_service.register_listing(
-        req=request,
-        payload=payload, 
-        db=db
-    )
+    listing_service.register_listing(req=request, payload=payload, db=db)
     return APIResponse(
         status=Status.SUCCESS,
         message="토지 매물을 등록했습니다.",

@@ -3,25 +3,86 @@ from fastapi import HTTPException
 
 from app.models.user import User
 from app.models.land import LandListing
-from app.integrations.kakao_api import kakao_get_pnu
 from app.schemas import listing
+from app.utils.convert_code import code2addr
 
 
 class ListingService:
     """토지 매물 관련 서비스 로직을 처리하는 클래스."""
 
-    def get_listing_data(self, lat: float, lng: float, level: int, payload: dict, db: Session) -> listing.LandListings:
-        pnu, _ = kakao_get_pnu(lat, lng)
-        if level == 1:
-            pnu = pnu[:2]
-        else:
-            pnu = pnu[:5]
-        listings = db.query(LandListing).filter_by(pnu=pnu).all()
+    def get_listing_data(self, pnu_prefix: str, page: int, size: int, payload: dict, db: Session) -> listing.LandListings:
+        # 로그인 상태라면 사용자 정보 받아오기
+        user_id = None
+        if payload:
+            email = payload.get("sub")
+            user = db.query(User).filter_by(email=email).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="해당 이메일로 등록된 유저가 없습니다.")
+            user_id = user.user_id
+        offset = (page - 1) * size
+        datas = (
+            db.query(LandListing)
+            .filter(LandListing.pnu.like(f"{pnu_prefix}%"))
+            .offset(offset)
+            .limit(size)
+            .all()
+        )
+        total = (
+            db.query(LandListing)
+            .filter(LandListing.pnu.like(f"{pnu_prefix}%"))
+            .count()
+        )
+        # SQLAlchemy 모델을 Pydantic 모델로 변환
+        listings = [
+            listing.Listing(
+                pnu=data.pnu,
+                address=address,
+                lat=data.lat,
+                lng=data.lng,
+                area=data.area,
+                price=data.price,
+                summary=data.summary,
+                reg_date=data.registered_at,
+                is_my_land=(data.user_id == user_id),
+                nickname=data.user.nickname,  # relationship 통해 가져온 유저 닉네임
+            )
+            for data in datas
+            if (address := code2addr(data.pnu, dict_format=True)) is not None
+        ]
         return listing.LandListings(
             listings=listings,
+            page=page,
+            size=size,
+            total=total,
         )
     
-    def register_listing(self, req: listing.RegisterListingRequest, db: Session, payload: dict) -> None:
+    def get_listing_marker(self, req: listing.GetListingMarkerRequest, db: Session) -> listing.ListingMarker:
+        datas = (
+            db.query(LandListing)
+            .filter(
+                LandListing.lat >= req.min_lat,
+                LandListing.lat <= req.max_lat,
+                LandListing.lng >= req.min_lng,
+                LandListing.lng <= req.max_lng
+            )
+            .all()
+        )
+        listings = [
+            listing.ListingMarker(
+                pnu=data.pnu,
+                address=address,
+                lat=data.lat,
+                lng=data.lng,
+                area=data.area,
+                price=data.price,
+                reg_date=data.registered_at,
+            )
+            for data in datas
+            if (address := code2addr(data.pnu, dict_format=True)) is not None
+        ]
+        return listings
+    
+    def register_listing(self, req: listing.RegisterListingRequest,  payload: dict, db: Session) -> None:
         # 유저 확인
         if not payload:
             raise HTTPException(status_code=401, detail="매물 등록을 하려면 로그인을 해야합니다.")
