@@ -7,12 +7,13 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
 from app.core.config import APP_DIR, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from app.models.land import LandInfo, LandListing
 from app.models.user import User, UserFavoriteLand
 from app.services.land import land_service
 
@@ -64,13 +65,20 @@ PW: {new_password}
 
     def modify_user_info(
         self,
-        user: User,
         name: str,
         nickname: str,
         phone: str,
         is_image_deleted: bool,
         image: Optional[UploadFile],
+        payload: dict,
+        db: Session,
     ):
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
         if is_image_deleted:
             user.profile_image_url = None
         elif image:
@@ -85,13 +93,30 @@ PW: {new_password}
         user.name = name
         user.nickname = nickname
         user.phone = phone
+        db.commit()
 
-    def change_password(self, user: User, current_password: str, new_password: str):
+    def change_password(self, current_password: str, new_password: str, payload: dict, db: Session):
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
         if not password_context.verify(current_password, user.password):
-            raise ValueError("비밀번호가 잘못되었습니다.")
+            raise HTTPException(status_code=400, detail="현재 비밀번호가 일치하지 않습니다.")
         user.password = password_context.hash(new_password)
+        db.commit()
 
-    def toggle_favorite(self, user: User, pnu: str, db: Session) -> bool:
+    def toggle_favorite(self, pnu: str, payload: dict, db: Session) -> bool:
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        land = db.query(LandInfo).filter_by(pnu=pnu).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
+        if not land:
+            raise HTTPException(status_code=404, detail="토지 데이터가 존재하지 않습니다.")
         favorite_land = (
             db.query(UserFavoriteLand)
             .filter(
@@ -100,24 +125,52 @@ PW: {new_password}
             )
             .first()
         )
-
         if favorite_land:
+            land.like_count = max(land.like_count - 1, 0)
             db.delete(favorite_land)
-            db.commit()
-            return False
         else:
+            land.like_count += 1
             new_favorite = UserFavoriteLand(user_id=user.user_id, pnu=pnu)
             db.add(new_favorite)
-            db.commit()
-            return True
+        db.add(land)
+        db.commit()
+        return favorite_land is None
 
-    def get_favorite_lands(self, user: User, db: Session):
+    def get_favorite_lands(self, payload: dict, db: Session):
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
         favorites = (
             db.query(UserFavoriteLand)
             .filter(UserFavoriteLand.user_id == user.user_id)
             .all()
         )
-        return [land_service.get_land_data(pnu=fav.pnu, db=db) for fav in favorites]
+        fav_data = []
+        for fav in favorites:
+            land, _ = land_service.get_land_detail(pnu=fav.pnu, payload=None, db=db)
+            fav_data.append(land)
+        return fav_data
+    
+    def get_listings(self, payload: dict, db: Session):
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
+        listings = (
+            db.query(LandListing)
+            .filter(LandListing.user_id == user.user_id)
+            .all()
+        )
+        listings_data = []
+        for listing in listings:
+            land, _ = land_service.get_land_detail(pnu=listing.pnu, payload=None, db=db)
+            listings_data.append(land)
+        return listings_data
 
 
 user_service = UserService()

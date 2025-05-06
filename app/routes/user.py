@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List, Optional
 from passlib.context import CryptContext
 
 from app.db.session import get_db
 from app.core.security import JWTBearer
+from app.enums.response import Status
+from app.schemas.land import LandData
 from app.services.user import user_service
 from app.schemas import APIResponse, user
 
@@ -51,7 +53,11 @@ async def modify_user_info(
     payload: dict = Depends(JWTBearer()),
     db: Session = Depends(get_db),
 ):
-    return user_service.modify_user_info(name, nickname, phone, is_image_deleted, image, payload, db)
+    user_service.modify_user_info(name, nickname, phone, is_image_deleted, image, payload, db)
+    return APIResponse(
+        status=Status.SUCCESS,
+        message="사용자 정보를 성공적으로 변경했습니다.",
+    )
 
 
 @user_router.post(
@@ -65,12 +71,16 @@ async def change_password(
     payload: dict = Depends(JWTBearer()),
     db: Session = Depends(get_db),
 ):
-    return user_service.change_password(request, payload, db)
+    user_service.change_password(request.current_password, request.change_password, payload, db)
+    return APIResponse(
+        status=Status.SUCCESS,
+        message="비밀번호가 변경되었습니다.",
+    )
 
 
 @user_router.post(
     "/change-land-like",
-    response_model=user.ChangeLandLikeResponse,
+    response_model=APIResponse,
     summary="토지 좋아요 토글",
     description="현재 토지가 사용자의 즐겨찾기에 등록되어 있으면 제거하고, 없으면 추가합니다."
 )
@@ -79,14 +89,43 @@ def patch_land_like_status(
     payload: dict = Depends(JWTBearer()),
     db: Session = Depends(get_db),
 ):
-    return user_service.toggle_favorite(request, payload, db)
-
+    if user_service.toggle_favorite(request.pnu, payload, db):
+        return APIResponse(
+            status=Status.SUCCESS,
+            message="관심있는 토지로 등록이 완료되었습니다.",
+            data=True,
+        )
+    else:
+        return APIResponse(
+            status=Status.SUCCESS,
+            message="관심있는 토지에서 등록이 해제되었습니다.",
+            data=False,
+        )
 
 @user_router.get(
     "/get-favorite-lands-by-user",
-    response_model=user.GetFavoriteLandsByUserResponse,
+    response_model=APIResponse[List[LandData]],
     summary="사용자의 즐겨찾기 토지 목록 조회",
     description="로그인한 사용자가 좋아요한 토지 목록을 반환합니다."
 )
 def get_favorite_land(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):
-    return user_service.get_favorite_lands(payload, db)
+    data = user_service.get_favorite_lands(payload, db)
+    return APIResponse[List[LandData]](
+        status=Status.SUCCESS,
+        message="나의 토지 관심 목록을 불러왔습니다.",
+        data=data,
+    )
+
+@user_router.get(
+    "/get-listings",
+    response_model=APIResponse[List[LandData]],
+    summary="사용자의 즐겨찾기 토지 목록 조회",
+    description="로그인한 사용자가 좋아요한 토지 목록을 반환합니다."
+)
+def get_listings(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):
+    data = user_service.get_listings(payload, db)
+    return APIResponse[List[LandData]](
+        status=Status.SUCCESS,
+        message="나의 토지 관심 목록을 불러왔습니다.",
+        data=data,
+    )
