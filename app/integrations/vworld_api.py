@@ -58,6 +58,39 @@ def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
         last_update_date=data.get("lastUpdtDt"),
     )
 
+def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
+    """
+    PNU와 기준연도를 바탕으로 해당 지역의 모든 PNU 코드를 가져옴.<br/>
+    참조: https://www.vworld.kr/dtna/dtna_apiSvcFc_s001.do
+    """
+    url = "https://api.vworld.kr/ned/data/getLandCharacteristics"
+    
+    pnu_list = []
+    curr_page = 1
+    while True:
+        params = {
+            "key": VWORLD_API_KEY,
+            "format": "json",
+            "numOfRows": "1000",
+            "pageNo": f"{curr_page}",
+            "pnu": pnu,
+            "stdrYear": year,
+        }
+        response = requests.get(url, params=params).json()
+        data = response.get("landCharacteristicss", {}).get("field", None)
+        total_count = int(response.get("landCharacteristicss", {}).get("totalCount", 0))
+        print(total_count)
+        if not data:
+            return None if year < 2015 else get_land_feature(pnu, year - 1)
+        
+        for d in data:
+            pnu_list.append(d["pnu"])
+        if len(pnu_list) < total_count:
+            curr_page += 1
+        else:
+            return pnu_list
+
+
 def get_land_use_plan(pnu: str, return2name: bool = False) -> Optional[str]:
     """토지의 용도지역 계획 정보를 반환합니다."""
     url = "https://api.vworld.kr/ned/data/getLandUseAttr"
@@ -99,7 +132,6 @@ def get_geometry_data(pnu: str) -> Optional[dict]:
 
     url = f"http://api.vworld.kr/req/data?service=data&request=GetFeature&data={data_type}&key={VWORLD_API_KEY}&attrFilter={attr_filter}&page=1&size=1000"
     response = json.loads(requests.get(url).text)
-
     if response["response"]["status"] == "NOT_FOUND":
         return None
 

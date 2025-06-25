@@ -4,6 +4,7 @@ from app.routes.land import land_router
 from app.routes.listing import listing_router
 from app.routes.user import user_router
 from app.routes.map import map_router
+from app.routes.region import region_router
 
 routers = [
     auth_router,
@@ -12,6 +13,7 @@ routers = [
     listing_router,
     user_router,
     map_router,
+    region_router,
 ]
 
 def setup_routers(app):
