@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Float, Integer
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.types import Numeric
 
@@ -77,4 +77,41 @@ class RegionCoordinate(Base):
         return (
             f"<RegionCoordinate(pnu={self.pnu}, region={self.region}, "
             f"lat={self.lat}, lng={self.lng})>"
+        )
+
+class RegionStat(Base):
+    """
+    📊 행정구역 통계 데이터 테이블
+
+    - 행정구역(PNU prefix)에 대한 예측가 및 공시지가 통계를 저장
+    - 클러스터링 시 계산 비용을 줄이기 위한 사전 계산 캐시 테이블
+    """
+
+    __tablename__ = "region_stat"
+
+    pnu = Column(
+        String(10), primary_key=True, nullable=False,
+        comment="행정구역 PNU prefix (10자리)",
+    )
+    avg_predicted_price = Column(
+        Float, nullable=False, default=0,
+        comment="해당 행정구역의 평균 예측 토지가격 (원)",
+    )
+    avg_official_price = Column(
+        Float, nullable=False, default=0,
+        comment="해당 행정구역의 평균 공시지가 (원)",
+    )
+    price_ratio = Column(
+        Float, nullable=False, default=0,
+        comment="예측가 / 공시지가 비율 (%)",
+    )
+    valid_count = Column(
+        Integer, nullable=False, default=0,
+        comment="유효한 예측가를 가진 토지 수 (0 초과, None 제외)",
+    )
+
+    def __repr__(self):
+        return (
+            f"<RegionStat(pnu={self.pnu}, avg_price={self.avg_predicted_price}, "
+            f"ratio={self.price_ratio}%)>"
         )
