@@ -20,6 +20,14 @@ class LandInfo(Base):
         String(20), primary_key=True, 
         comment="필지번호 (PNU)"
     )
+    lat = Column(
+        Numeric(17, 14), nullable=False,
+        comment="위도 (Latitude)"
+    )
+    lng = Column(
+        Numeric(17, 14), nullable=False,
+        comment="경도 (Longitude)"
+    )
     official_price = Column(
         Float, nullable=False, 
         comment="공시지가 (원)"
@@ -237,3 +245,65 @@ class LandListing(Base):
 
     def __repr__(self):
         return f"<LandListing(id={self.listing_id}, pnu={self.pnu}, user_id={self.user_id})>"
+
+class LandAuction(Base):
+    """
+    🏠 토지 경매 테이블 (LandAuction)
+
+    - 법원 경매 사이트에서 크롤링한 정보 중 **토지**만 저장
+    - 감정평가액, 최저매각가 등 토지 정보 저장
+    """
+
+    __tablename__ = "land_auction"
+    
+    doc_id = Column(
+        String(24), primary_key=True, 
+        comment="경매 고유 ID"
+    )
+    pnu = Column(
+        String(20), nullable=False, index=True,
+        comment="PNU 코드 (토지 고유 식별자)"
+    )
+    case_cd = Column(
+        String(15), nullable=False,
+        comment="사건번호"
+    )
+    obj_cd = Column(
+        Integer, nullable=False,
+        comment="물건번호"
+    )
+    obj_type = Column(
+        String(100), nullable=False,
+        comment="물건종류"
+    )
+    appraisal_price = Column(
+        Float, nullable=False,
+        comment="감정평가액"
+    )
+    min_sale_price = Column(
+        Float, nullable=False,
+        comment="최저입찰가"
+    )
+    auction_date = Column(
+        Integer, nullable=False,
+        comment="매각 기일"
+    )
+    auction_time = Column(
+        Integer, nullable=False,
+        comment="매각 시간"
+    )
+    court_in_charge = Column(
+        String(20), nullable=False,
+        comment="담당법원"
+    )
+    court_detail = Column(
+        String(20), nullable=False,
+        comment="담당법원 부서"
+    )
+    land_detail = Column(
+        Text, nullable=True,
+        comment="토지 설명"
+    )
+
+    def __repr__(self):
+        return f"<LandAuction(id={self.doc_id}, pnu={self.pnu})>"

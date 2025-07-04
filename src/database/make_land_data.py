@@ -26,6 +26,8 @@ def insert_land_data(pnu: str, db: Session):
         land_data = land_service._generate_land_data(pnu)
         land_info = LandInfo(
             pnu=pnu,
+            lat=land_data.lat,
+            lng=land_data.lng,
             official_price=land_data.detail.official_price,
             predicted_price=None,
             land_cls=land_data.detail.land_cls,

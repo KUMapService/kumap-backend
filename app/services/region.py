@@ -1,10 +1,12 @@
 from typing import List
-from sqlalchemy import and_
+from sqlalchemy import and_, desc, asc
 from sqlalchemy.orm import Session
 
-from app.enums.types import MapZoomLevel
+from app.enums.types import MapZoomLevel, SortType
 from app.models.geo import RegionCoordinate, RegionStat
-from app.schemas import region
+from app.models.land import LandInfo
+from app.schemas import region, land
+from app.utils.convert_code import code2addr
 
 
 class RegionService:
@@ -37,6 +39,7 @@ class RegionService:
                 lat=item.lat,
                 lng=item.lng,
                 avg_predict_land_price=f"{stat.avg_predicted_price:.0f}" if stat else "0",
+                avg_official_price=f"{stat.avg_official_price:.0f}" if stat else "0",
                 price_ratio=f"{stat.price_ratio:.2f}" if stat else "0.00",
                 total_land_count=stat.valid_count if stat else 0,
             ))
@@ -52,9 +55,49 @@ class RegionService:
             lat=item.lat,
             lng=item.lng,
             avg_predict_land_price=f"{stat.avg_predicted_price:.0f}" if stat else "0",
+            avg_official_price=f"{stat.avg_official_price:0f}" if stat else "0",
             price_ratio=f"{stat.price_ratio:.2f}" if stat else "0.00",
             total_land_count=stat.valid_count if stat else 0,
         )
 
+    def get_region_land_list(self, pnu: str, sort_type: SortType, page: int, db: Session) -> List[land.LandData]:
+        PAGE_SIZE = 10
+        offset = (page - 1) * PAGE_SIZE
+
+        query = db.query(LandInfo).filter(LandInfo.pnu.like(f"{pnu}%"))
+
+        # 정렬 조건 분기
+        if sort_type == SortType.PRICE_DESC:
+            query = query.order_by(desc(LandInfo.predicted_price))
+        elif sort_type == SortType.PRICE_ASC:
+            query = query.order_by(asc(LandInfo.predicted_price))
+        elif sort_type == SortType.LIKE_DESC:
+            query = query.order_by(desc(LandInfo.like_count))
+        else:  # default_order
+            query = query.order_by(LandInfo.pnu)
+
+        # 페이징 적용
+        items = query.offset(offset).limit(PAGE_SIZE).all()
+        
+        data = []
+        for item in items:
+            data.append(
+                land.LandSimpleData(
+                    pnu=item.pnu,
+                    address=code2addr(item.pnu, dict_format=True),
+                    lat=item.lat,
+                    lng=item.lng,
+                    predicted_price=item.predicted_price,
+                    price_ratio=item.official_price,
+                    land_cls=item.land_cls,
+                    land_zoning=item.land_zoning,
+                    last_predicted_date=item.last_predicted_date,
+                    like_count=item.like_count,
+                    is_like=False,
+                    is_auction=True,
+                    is_listing=True,
+                )
+            )
+        return data
 
 region_service = RegionService()

@@ -61,3 +61,9 @@ class MapZoomLevel():
     MID = [5, 6]
     HIGH = [7, 8, 9]
     TOP = [10, 11, 12, 13, 14, 15, 16]
+
+class SortType():
+    DEFAULT = 0
+    PRICE_DESC = 1
+    PRICE_ASC = 2
+    LIKE_DESC = 3

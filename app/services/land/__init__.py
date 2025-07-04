@@ -60,7 +60,6 @@ class LandService:
         address = code2addr(pnu, dict_format=True)
         if not address:
             raise HTTPException(status_code=404, detail="토지 정보를 찾을 수 없습니다.")
-        lat, lng = kakao_get_coord(address.fulladdr)
         # 토지 정보 받아오기
         land_info = db.query(LandInfo).filter_by(pnu=pnu).first()
         # 데이터베이스에 해당 토지에 대한 정보가 있을 경우
@@ -68,8 +67,8 @@ class LandService:
             return land.LandData(
                 pnu=pnu,
                 address=address,
-                lat=lat,
-                lng=lng,
+                lat=land_info.lat,
+                lng=land_info.lng,
                 predicted_price=land_info.predicted_price,
                 last_predicted_date=land_info.last_predicted_date,
                 detail=land.LandDetail(
@@ -97,6 +96,8 @@ class LandService:
         if new_land:
             db.add(LandInfo(
                 pnu=new_land.pnu,
+                lat=new_land.lat,
+                lng=new_land.lng,
                 official_price=new_land.detail.official_price,
                 predicted_price=new_land.predicted_price,
                 land_reg=new_land.detail.land_reg,

@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 
-from app.schemas.geo import AddressSchema
 
 
 # REQUEST DATA
@@ -14,6 +13,10 @@ class GetRegionMarkersRequest(BaseModel):
 class GetRegionDataRequest(BaseModel):
     pnu: str = Field(..., description="PNU 코드", example="41135105")
 
+class GetRegionLandListRequest(BaseModel):
+    pnu: str = Field(..., description="PNU 코드", example="41135105")
+    sort_type: int = Field(..., description="정렬 타입 (0: 기본, 1: 높은 가격순, 2: 낮은 가격순, 3: 좋아요순)")
+    page: int = Field(..., description="페이지 번호")
 
 # RESPONSE DATA
 class RegionData(BaseModel):
@@ -22,6 +25,7 @@ class RegionData(BaseModel):
     lat: float = Field(..., description="위도", example=37.382810528148)
     lng: float = Field(..., description="경도", example=127.126083586929)
     avg_predict_land_price: float = Field(..., description="해당 지역의 평균 토지 예측가", example=9226708)
+    avg_official_price: float = Field(..., description="해당 지역의 평균 공시지가")
     price_ratio: float = Field(..., description="해당 지역의 공시지가 대비 예측가 가격대", example=193.52)
     total_land_count: int = Field(..., description="해당 지역의 토지 수", example=4)
 

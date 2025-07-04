@@ -79,7 +79,6 @@ def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
         response = requests.get(url, params=params).json()
         data = response.get("landCharacteristicss", {}).get("field", None)
         total_count = int(response.get("landCharacteristicss", {}).get("totalCount", 0))
-        print(total_count)
         if not data:
             return None if year < 2015 else get_land_feature(pnu, year - 1)
         
@@ -87,6 +86,7 @@ def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
             pnu_list.append(d["pnu"])
         if len(pnu_list) < total_count:
             curr_page += 1
+            return pnu_list # TODO: 나중에 지워야함
         else:
             return pnu_list
 

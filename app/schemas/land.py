@@ -149,6 +149,21 @@ class LandData(BaseModel):
     like_count: int = Field(..., description="토지의 좋아요 개수")
     is_like: Optional[bool] = Field(None, description="사용자의 좋아요 여부")
 
+class LandSimpleData(BaseModel):
+    pnu: str = Field(..., description="PNU코드")
+    address: AddressSchema = Field(..., description="주소")
+    lat: float = Field(..., description="위도")
+    lng: float = Field(..., description="경도")
+    predicted_price: Optional[float] = Field(None, description="예측 실거래가")
+    price_ratio: float = Field(..., description="해당 지역의 공시지가 대비 예측가 가격대")
+    land_cls: str = Field(..., description="지목")
+    land_zoning: str = Field(..., description="용도지역")
+    last_predicted_date: Optional[NaiveDatetime] = Field(None, description="마지막 토지 가격 예측 일자")
+    like_count: int = Field(..., description="토지의 좋아요 개수")
+    is_like: Optional[bool] = Field(False, description="사용자의 좋아요 여부")
+    is_auction: Optional[bool] = Field(False, description="토지의 경매 등록 여부")
+    is_listing: Optional[bool] = Field(False, description="토지의 매물 등록 여부")
+
 class PredictedPriceData(BaseModel):
     predicted_price: float = Field(None, description="예측 실거래가")
     last_predicted_date: NaiveDatetime = Field(None, description="마지막 토지 가격 예측 일자")
