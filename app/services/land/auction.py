@@ -1,34 +1,24 @@
 from datetime import datetime
-from typing import Tuple
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from pydantic import NaiveDatetime
 
-from app.enums.types import ReactionType
-from app.models.land import LandInfo, LandAuction, LandListing
-from app.models.user import User, UserFavoriteLand, UserLandReportReaction
-from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
-from app.generators.report_generator import generate_land_report
-from app.integrations.vworld_api import get_land_feature, get_land_use_plan
-from app.integrations.kakao_api import kakao_get_coord
+from app.models.land import LandAuction
 from app.schemas import auction
-from app.services.land.predictor import land_price_predictor
 from app.utils.convert_code import code2addr
-from app.utils.date import get_now
+
 
 class AuctionService:
-	def get_auction_data(self, pnu_prefix: str, page: int, size: int, db: Session) -> auction.LandAuctions:
+	def get_auction_data(self, pnu: str, page: int, size: int, db: Session) -> auction.LandAuctions:
 		offset = (page - 1) * size
 		datas = (
             db.query(LandAuction)
-            .filter(LandAuction.pnu.like(f"{pnu_prefix}%"))
+            .filter(LandAuction.pnu.like(f"{pnu}%"))
             .offset(offset)
             .limit(size)
             .all()
         )
 		total = (
             db.query(LandAuction)
-            .filter(LandAuction.pnu.like(f"{pnu_prefix}%"))
+            .filter(LandAuction.pnu.like(f"{pnu}%"))
             .count()
         )
         # SQLAlchemy 모델을 Pydantic 모델로 변환

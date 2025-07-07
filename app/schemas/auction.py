@@ -46,7 +46,7 @@ class AuctionSimpleData(BaseModel):
 
 # REQUEST DATA
 class GetAuctionRequest(BaseModel):
-    pnu_prefix: str = Field(..., description="PNU 코드 (2자리 or 5자리 or 8자리)")
+    pnu: str = Field(..., description="PNU 코드 (2자리 or 5자리 or 8자리)")
     page: int = Field(..., description="조회할 페이지")
     size: int = Field(..., description="한 번에 받아올 데이터 크기")
 

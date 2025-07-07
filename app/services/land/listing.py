@@ -10,7 +10,7 @@ from app.utils.convert_code import code2addr
 class ListingService:
     """토지 매물 관련 서비스 로직을 처리하는 클래스."""
 
-    def get_listing_data(self, pnu_prefix: str, page: int, size: int, payload: dict, db: Session) -> listing.LandListings:
+    def get_listing_data(self, pnu: str, page: int, size: int, payload: dict, db: Session) -> listing.LandListings:
         # 로그인 상태라면 사용자 정보 받아오기
         user_id = None
         if payload:
@@ -22,14 +22,14 @@ class ListingService:
         offset = (page - 1) * size
         datas = (
             db.query(LandListing)
-            .filter(LandListing.pnu.like(f"{pnu_prefix}%"))
+            .filter(LandListing.pnu.like(f"{pnu}%"))
             .offset(offset)
             .limit(size)
             .all()
         )
         total = (
             db.query(LandListing)
-            .filter(LandListing.pnu.like(f"{pnu_prefix}%"))
+            .filter(LandListing.pnu.like(f"{pnu}%"))
             .count()
         )
         # SQLAlchemy 모델을 Pydantic 모델로 변환

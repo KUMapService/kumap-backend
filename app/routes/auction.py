@@ -12,7 +12,7 @@ auction_router = APIRouter(prefix="/auction")
 
 
 @auction_router.get(
-    "/get-data",
+    "/get-list",
     response_model=APIResponse[auction.LandAuctions],
     responses=error.make_error_responses(),
     summary="토지 경매 목록 조회",
@@ -22,7 +22,7 @@ def get_auction_data(
     request: auction.GetAuctionRequest = Depends(),
     db: Session = Depends(get_db),
 ):
-    auctions = auction_service.get_auction_data(pnu_prefix=request.pnu_prefix, page=request.page, size=request.size, db=db)
+    auctions = auction_service.get_auction_data(request.pnu, request.page, request.size, db=db)
     return APIResponse[auction.LandAuctions](
         status=Status.SUCCESS,
         message="해당 지역의 경매 데이터를 성공적으로 불러왔습니다.",

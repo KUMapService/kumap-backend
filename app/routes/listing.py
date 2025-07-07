@@ -12,7 +12,7 @@ listing_router = APIRouter(prefix="/listing")
 
 
 @listing_router.get(
-    "/get-data",
+    "/get-list",
     response_model=APIResponse[listing.LandListings],
     responses=error.make_error_responses(),
     summary="토지 매물 목록 조회",
@@ -23,7 +23,7 @@ def get_listing_data(
     payload: dict = Depends(JWTBearer(auto_error=False)),
     db: Session = Depends(get_db),
 ):
-    listings = listing_service.get_listing_data(pnu_prefix=request.pnu_prefix, page=request.page, size=request.size, payload=payload, db=db)
+    listings = listing_service.get_listing_data(request.pnu, request.page, request.size, payload=payload, db=db)
     return APIResponse[listing.LandListings](
         status=Status.SUCCESS,
         message="해당 지역의 매물 데이터를 성공적으로 불러왔습니다.",
