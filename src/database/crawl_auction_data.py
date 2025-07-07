@@ -1,3 +1,4 @@
+import argparse
 import requests
 import json
 from time import sleep
@@ -6,7 +7,8 @@ import random
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.land import LandAuction
-from app.utils.convert_code import addr2code
+from app.integrations.kakao_api import kakao_get_coord
+from app.utils.convert_code import addr2code, code2addr
 
 SIDO_CODE = [
 	"11", "26", "27", "28", "29", "30", "31",
@@ -108,6 +110,8 @@ def crawl_auction_data(sido_cd: str, sigungu_cd: str = "", db: Session = None) -
 						auction_data = LandAuction(
 							doc_id=r["docid"],
 							pnu=addr2code(r["printSt"]),
+							lat=0,
+							lng=0,
 							case_cd=r["srnSaNo"],
 							obj_cd=int(r["mokmulSer"]),
 							obj_type=r["jimokList"],
@@ -126,6 +130,21 @@ def crawl_auction_data(sido_cd: str, sigungu_cd: str = "", db: Session = None) -
 					db.rollback()
 		sleep(random.uniform(1.0, 2.0))
 
+def set_auction_coord(db: Session) -> None:
+	auction_list = db.query(LandAuction).all()
+	for auction_data in auction_list:
+		try:
+			address = code2addr(auction_data.pnu)
+			print(f"[UPDATE] {address} coordinate data updating...")
+			lat, lng = kakao_get_coord(address)
+			auction_data.lat = lat
+			auction_data.lng = lng
+		except Exception as e:
+			print("[ERROR]", str(e))
+			db.rollback()
+	db.commit()
+
+
 def main():
 	db = SessionLocal()
 	try:
@@ -135,7 +154,22 @@ def main():
 	except:  # noqa: E722
 		print("[ERROR] BAD RESPONSE")
 	
+def update_coord():
+	db = SessionLocal()
+	try:
+		set_auction_coord(db)
+	except Exception as e:
+		print(f"[ERROR] {e}")
 
 
 if __name__ == "__main__":
-    main()
+	parser = argparse.ArgumentParser(description="Crawl auction data or update coordinates.")
+	parser.add_argument('-c', '--coord', action='store_true', help='Update coordinates instead of crawling auction data')
+	args = parser.parse_args()
+	
+	# python -m src.database.crawl_auction_data -c
+	if args.coord:
+		update_coord()
+	# python -m src.database.crawl_auction_data
+	else:
+		main()

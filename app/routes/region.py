@@ -11,7 +11,7 @@ region_router = APIRouter(prefix="/region")
 
 
 @region_router.get(
-    "/get-region-markers",
+    "/get-marker",
     response_model=APIResponse[List[region.RegionData]],
     responses=error.make_error_responses(need_404=True),
     summary="지역 마커 조회",
@@ -30,7 +30,7 @@ def get_region_markers(
     
 
 @region_router.get(
-    "/get-region-data",
+    "/get-data",
     response_model=APIResponse[List[region.RegionData]],
     responses=error.make_error_responses(need_404=True),
     summary="지역 정보 조회",
@@ -48,7 +48,7 @@ def get_region_data(
     )
 
 @region_router.get(
-    "/get-region-land-list",
+    "/get-land-list",
     response_model=APIResponse[List[land.LandSimpleData]],
     responses=error.make_error_responses(need_404=True),
     summary="지역 내 토지 정보 조회",

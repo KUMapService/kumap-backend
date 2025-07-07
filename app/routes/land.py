@@ -11,7 +11,7 @@ land_router = APIRouter(prefix="/land")
 
 
 @land_router.get(
-    "/get-land-data",
+    "/get-data",
     response_model=APIResponse[land.LandData],
     responses=error.make_error_responses(need_404=True),
     summary="토지 정보 조회",
@@ -44,7 +44,7 @@ def get_land_data(
     
 
 @land_router.get(
-    "/get-land-predicted-price",
+    "/get-predicted-price",
     response_model=APIResponse[land.PredictedPriceData],
     responses=error.make_error_responses(need_404=True),
     summary="토지 예측가 조회",
@@ -62,7 +62,7 @@ def get_land_predicted_price(
     )
 
 @land_router.get(
-    "/get-land-report",
+    "/get-report",
     response_model=APIResponse[land.LandReportData],
     summary="토지 분석 리포트 생성",
     description="PNU를 기반으로 토지 분석 보고서를 생성하거나 조회합니다. (LLM 사용)",

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, NaiveDatetime
 from typing import Optional, List
 
 from app.enums.types import Category
-from app.schemas.auction import Auction
+from app.schemas.auction import Auction, AuctionMarker
 from app.schemas.geo import AddressSchema
 from app.schemas.listing import Listing
 

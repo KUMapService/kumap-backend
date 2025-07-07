@@ -264,6 +264,14 @@ class LandAuction(Base):
         String(20), nullable=False, index=True,
         comment="PNU 코드 (토지 고유 식별자)"
     )
+    lat = Column(
+        Numeric(17, 14), nullable=False,
+        comment="위도 (Latitude)"
+    )
+    lng = Column(
+        Numeric(17, 14), nullable=False,
+        comment="경도 (Longitude)"
+    )
     case_cd = Column(
         String(15), nullable=False,
         comment="사건번호"

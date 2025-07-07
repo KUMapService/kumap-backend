@@ -12,7 +12,7 @@ listing_router = APIRouter(prefix="/listing")
 
 
 @listing_router.get(
-    "/get-listing",
+    "/get-data",
     response_model=APIResponse[listing.LandListings],
     responses=error.make_error_responses(),
     summary="토지 매물 목록 조회",

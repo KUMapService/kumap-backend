@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import Tuple
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from app.enums.types import ReactionType
-from app.models.land import LandInfo, LandReport, LandListing
+from app.models.land import LandAuction, LandInfo, LandReport, LandListing
 from app.models.user import User, UserFavoriteLand, UserLandReportReaction
 from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
@@ -149,7 +150,50 @@ class LandService:
                 is_my_land=(user_id == listing_data.user_id),
             )
             data.listing = land_listing
-        # TODO: 경매 정보 받아오기 및 파싱
+
+        # 경매 정보 받아오기 및 파싱
+        auction_data = db.query(LandAuction).filter_by(pnu=pnu).first()
+        if auction_data:
+            related_items = db.query(LandAuction).filter_by(case_cd=auction_data.case_cd).all()
+            obj_list = [
+                land.AuctionMarker(
+                    pnu=item.pnu,
+                    lat=item.lat,
+                    lng=item.lng,
+                    price=item.min_sale_price,
+                    auction_date=datetime(
+                        year=int(auction_data.auction_date // 10000),
+                        month=int((auction_data.auction_date // 100) % 100), 
+                        day=int(auction_data.auction_date % 100),
+                        hour=int(auction_data.auction_time // 100),
+                        minute=int(auction_data.auction_time % 100),
+                    ),
+                    # address는 선택값이라 None 또는 AddressSchema 로 추가해도 됨
+                )
+                for item in related_items
+            ]
+            land_auction = land.Auction(
+                pnu=auction_data.pnu,
+                lat=auction_data.lat,
+                lng=auction_data.lng,
+                case_cd=auction_data.case_cd,
+                obj_cd=auction_data.obj_cd,
+                obj_type=auction_data.obj_type,
+                appraisal_price=auction_data.appraisal_price,
+                min_sale_price=auction_data.min_sale_price,
+                auction_date=datetime(
+                    year=int(auction_data.auction_date // 10000),
+                    month=int((auction_data.auction_date // 100) % 100), 
+                    day=int(auction_data.auction_date % 100),
+                    hour=int(auction_data.auction_time // 100),
+                    minute=int(auction_data.auction_time % 100),
+                ),
+                court_in_charge=auction_data.court_in_charge,
+                court_detail=auction_data.court_detail,
+                land_detail=auction_data.land_detail,
+                obj_list=obj_list,
+            )
+            data.auction = land_auction
 
         return data, is_like
 

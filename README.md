@@ -43,9 +43,9 @@ land-price-backend/
 
 ### 🚀 How to Run
 
-#### 1. Install packages
+#### 1. Install dependencies
 
-```
+```bash
 uv sync
 ```
 
@@ -77,13 +77,55 @@ GOOGLE_API_KEY=
 LLM_MODEL=
 ```
 
-#### 3. Run DB migration (First Time ONLY)
+#### 3. Run database migration (first-time ONLY)
 
-```
+```bash
 alembic upgrade head
 ```
 
-#### 4. Run the server
+#### 4. Generate region data (cadastral + region centroid)
+
+```bash
+uv run python -m src.database.generate_region_data
+```
+
+To generate only cadastral data, run:
+
+```bash
+uv run python -m src.database.generate_region_data --cadastral
+```
+
+To generate only region centroid data, run:
+
+```
+uv run python -m src.database.generate_region_data --centroid
+```
+
+#### 5. Generate land prediction data and region stats
+
+```
+uv run python -m src.database.make_land_data
+```
+
+```
+uv run python -m src.database.generate_region_stat
+```
+
+#### 6. Get land auction data
+
+First, crawl auction data from `https://www.courtauction.go.kr/`
+
+```
+uv run python -m src.database.crawl_auction_data
+```
+
+After crawling, update auction coordinate data.
+
+```
+uv run python -m src.database.crawl_auction_data -c
+```
+
+#### 7. Run the server
 
 ```
 uv run run.py

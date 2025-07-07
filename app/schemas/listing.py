@@ -24,7 +24,7 @@ class ListingMarker(BaseModel):
     lng: float = Field(..., description="경도")
     area: float = Field(..., description="매물 면적")
     price: float = Field(..., description="매물 가격")
-    reg_date: NaiveDatetime = Field(..., descript="매물 등록 일자")
+    reg_date: NaiveDatetime = Field(..., description="매물 등록 일자")
 
 
 # REQUEST DATA
