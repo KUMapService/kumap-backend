@@ -81,11 +81,12 @@ def crawl_auction_data(sido_cd: str, sigungu_cd: str = "", db: Session = None) -
 		)
 
 		response = json.loads(response.text)
-		print(response)
 		total_group_count = response["data"]["dma_pageInfo"]["groupTotalCount"]
 		print(f"[{response["data"]["dma_pageInfo"]["pageNo"]:5d}/{total_group_count:5d}]")
 		current_count += 1
-
+		
+		if len(response["data"]["dlt_srchResult"]) == 0:
+			continue
 		for r in response["data"]["dlt_srchResult"]:
 			if r["lclsUtilCd"] == "10000":
 				try:
