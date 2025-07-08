@@ -6,17 +6,17 @@ from app.core.security import JWTBearer
 from app.db.session import get_db
 from app.enums.response import Status
 from app.models.user import User
-from app.schemas import APIResponse, error, auth
+from app.schemas import APIResponse, auth, error
 from app.services.auth import auth_service
 
 auth_router = APIRouter(prefix="/auth")
 
 
 @auth_router.post(
-    "/login", 
-    response_model=APIResponse[auth.LoginData], 
+    "/login",
+    response_model=APIResponse[auth.LoginData],
     responses=error.make_error_responses(need_401=True),
-    summary="로그인", 
+    summary="로그인",
     description="이메일과 비밀번호를 통해 로그인하고 Access/Refresh 토큰을 발급받습니다."
 )
 async def login(request: auth.LoginRequest, db: Session = Depends(get_db)):
@@ -31,10 +31,10 @@ async def login(request: auth.LoginRequest, db: Session = Depends(get_db)):
     )
 
 @auth_router.post(
-    "/dup-check", 
+    "/dup-check",
     response_model=APIResponse,
     responses=error.make_error_responses(need_409=True),
-    summary="중복 체크", 
+    summary="중복 체크",
     description="이메일 또는 닉네임의 중복 여부를 확인합니다."
 )
 async def duplicate_check(request: auth.DuplicateCheckRequest, db: Session = Depends(get_db)):
@@ -45,10 +45,10 @@ async def duplicate_check(request: auth.DuplicateCheckRequest, db: Session = Dep
     )
 
 @auth_router.post(
-    "/sign-up", 
+    "/sign-up",
     response_model=APIResponse,
     responses=error.make_error_responses(need_409=True),
-    summary="회원가입", 
+    summary="회원가입",
     description="이름, 이메일, 비밀번호, 닉네임을 통해 회원가입을 진행합니다."
 )
 async def signup(request: auth.RegisterRequest, db: Session = Depends(get_db)):
@@ -59,10 +59,10 @@ async def signup(request: auth.RegisterRequest, db: Session = Depends(get_db)):
     )
 
 @auth_router.get(
-    "/protected", 
+    "/protected",
     response_model=APIResponse[auth.ProtectedUserData],
     responses=error.make_error_responses(need_401=True, need_404=True),
-    summary="보호된 라우트 인증", 
+    summary="보호된 라우트 인증",
     description="JWT 토큰을 통해 사용자의 인증 상태를 확인합니다."
 )
 async def protected(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):

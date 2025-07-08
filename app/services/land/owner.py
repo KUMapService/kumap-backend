@@ -1,8 +1,8 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
-from app.models.user import User
 from app.models.land import LandOwner
+from app.models.user import User
 from app.schemas import owner
 
 
@@ -30,7 +30,7 @@ class OwnerService:
         ))
         db.commit()
         return
-    
+
     def remove_land_owner(self, pnu: str, payload: dict, db: Session) -> None:
         # 유저 확인
         if not payload:

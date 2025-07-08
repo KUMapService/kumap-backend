@@ -1,5 +1,6 @@
-import pytz
 from datetime import datetime
+
+import pytz
 
 
 def get_prev_month(year: int, month: int) -> tuple[int, int]:

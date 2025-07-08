@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-
 # REQUEST DATA
 class GetRegionMarkersRequest(BaseModel):
     min_lat: float = Field(..., description="위도 시작 지점", example=37.3827531654055)
@@ -9,7 +8,7 @@ class GetRegionMarkersRequest(BaseModel):
     max_lat: float = Field(..., description="위도 끝 지점", example=37.3927531654055)
     max_lng: float = Field(..., description="경도 끝 지점", example=127.128829944284)
     zoom: int = Field(..., description="지도 확대 레벨", examples=5)
-    
+
 class GetRegionDataRequest(BaseModel):
     pnu: str = Field(..., description="PNU 코드", example="41135105")
 

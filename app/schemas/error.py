@@ -1,5 +1,5 @@
+
 from fastapi import status
-from typing import Dict
 from pydantic import BaseModel, Field
 
 from app.enums.response import Status
@@ -36,13 +36,13 @@ class InternalServerErrorResponse(BaseModel):
 
 def make_error_responses(
     need_400: bool = False,
-    need_401: bool = False, 
+    need_401: bool = False,
     need_403: bool = False,
     need_404: bool = False,
     need_409: bool = False,
-    need_422: bool = True, 
+    need_422: bool = True,
     need_500: bool = True,
-) -> Dict[int, dict]:
+) -> dict[int, dict]:
     """Swagger 문서에 에러 코드 정의를 위한 에러 응답 생성 함수.
     """
     responses = {}

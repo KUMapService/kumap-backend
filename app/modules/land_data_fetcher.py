@@ -1,6 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor
-from app.integrations import vworld_api, ecos_api, kakao_api
+
+from app.integrations import ecos_api, kakao_api, vworld_api
 from app.schemas.land import LandBasicData
+
 
 def fetch_land_basic_data(pnu: str, year: int, month: int) -> LandBasicData:
     """
@@ -40,7 +42,7 @@ def fetch_land_basic_data(pnu: str, year: int, month: int) -> LandBasicData:
         place_counts_500 = future_place_500.result()
         place_counts_1000 = future_place_1000.result()
         place_counts_3000 = future_place_3000.result()
-        
+
     return LandBasicData(
         pnu=pnu,
         feature=lf_data,

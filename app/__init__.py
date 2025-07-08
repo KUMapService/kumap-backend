@@ -7,7 +7,6 @@ from app.middlewares import setup_middlewares
 from app.routes import setup_routers
 from app.schemas import APIResponse, error
 
-
 # FastAPI 앱 생성
 app = FastAPI(
     title="KUMap API 문서",
@@ -30,10 +29,10 @@ setup_routers(app)
 
 # 서버 상태 체크
 @app.get(
-    "/api", 
-    response_model=APIResponse, 
+    "/api",
+    response_model=APIResponse,
     responses=error.make_error_responses(need_422=False, need_500=True),
-    summary="서버 상태 확인", 
+    summary="서버 상태 확인",
     description="서버가 정상적으로 동작하고 있는지 상태를 확인하는 엔드포인트입니다."
 )
 def server_status():

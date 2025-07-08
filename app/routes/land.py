@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.core.security import JWTBearer
+from app.db.session import get_db
 from app.enums.response import Status
-from app.services.land import land_service
 from app.schemas import APIResponse, error, land
+from app.services.land import land_service
 
 land_router = APIRouter(prefix="/land")
 
@@ -41,7 +41,7 @@ def get_land_data(
             is_like=is_like,
         )
     )
-    
+
 
 @land_router.get(
     "/get-predicted-price",
@@ -51,7 +51,7 @@ def get_land_data(
     description="PNU를 기반으로 해당 토지의 최신 예측가를 조회합니다.",
 )
 def get_land_predicted_price(
-    request: land.GetLandRequest = Depends(), 
+    request: land.GetLandRequest = Depends(),
     db: Session = Depends(get_db)
 ):
     data = land_service.get_predict_price(pnu=request.pnu, db=db)

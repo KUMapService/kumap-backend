@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from passlib.context import CryptContext
 
-from app.db.session import get_db
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+
 from app.core.security import JWTBearer
+from app.db.session import get_db
 from app.enums.response import Status
+from app.schemas import APIResponse, user
 from app.schemas.land import LandData
 from app.services.user import user_service
-from app.schemas import APIResponse, user
 
 user_router = APIRouter(prefix="/user")
 
@@ -34,7 +34,7 @@ async def reset_password(request: user.ResetPasswordRequest, db: Session = Depen
     "/images",
     include_in_schema=False  # 중복 등록 방지
 )
-async def get_user_image(file_name: Optional[str] = None):
+async def get_user_image(file_name: str | None = None):
     return user_service.get_user_image(file_name)
 
 
@@ -49,7 +49,7 @@ async def modify_user_info(
     nickname: str = Form(...),
     phone: str = Form(...),
     is_image_deleted: bool = Form(False),
-    image: Optional[UploadFile] = File(None),
+    image: UploadFile | None = File(None),
     payload: dict = Depends(JWTBearer()),
     db: Session = Depends(get_db),
 ):
@@ -104,13 +104,13 @@ def patch_land_like_status(
 
 @user_router.get(
     "/get-favorite-lands-by-user",
-    response_model=APIResponse[List[LandData]],
+    response_model=APIResponse[list[LandData]],
     summary="사용자의 즐겨찾기 토지 목록 조회",
     description="로그인한 사용자가 좋아요한 토지 목록을 반환합니다."
 )
 def get_favorite_land(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):
     data = user_service.get_favorite_lands(payload, db)
-    return APIResponse[List[LandData]](
+    return APIResponse[list[LandData]](
         status=Status.SUCCESS,
         message="나의 토지 관심 목록을 불러왔습니다.",
         data=data,
@@ -118,13 +118,13 @@ def get_favorite_land(payload: dict = Depends(JWTBearer()), db: Session = Depend
 
 @user_router.get(
     "/get-listings",
-    response_model=APIResponse[List[LandData]],
+    response_model=APIResponse[list[LandData]],
     summary="사용자의 즐겨찾기 토지 목록 조회",
     description="로그인한 사용자가 좋아요한 토지 목록을 반환합니다."
 )
 def get_listings(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):
     data = user_service.get_listings(payload, db)
-    return APIResponse[List[LandData]](
+    return APIResponse[list[LandData]](
         status=Status.SUCCESS,
         message="나의 토지 관심 목록을 불러왔습니다.",
         data=data,

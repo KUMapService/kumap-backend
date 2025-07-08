@@ -1,15 +1,15 @@
+
 from pydantic import BaseModel, Field
-from typing import Optional, List
 
 
 # DATA SCHEMA
 class AddressSchema(BaseModel):
-    sido: Optional[str] = Field(None, description="시/도", example="경기도")
-    sigungu: Optional[str] = Field(None, description="시/군/구", example="성남시 분당구")
-    eupmyeondong: Optional[str] = Field(None, description="읍/면/동", example="운중동")
-    donglee: Optional[str] = Field(None, description="동/리 등 세부지역", example="")
-    detail: Optional[str] = Field(None, description="상세주소 (해당되는 경우)", example="935")
-    fulladdr: Optional[str] = Field(None, description="전체 주소 문자열", example="경기도 성남시 분당구 운중동 935")
+    sido: str | None = Field(None, description="시/도", example="경기도")
+    sigungu: str | None = Field(None, description="시/군/구", example="성남시 분당구")
+    eupmyeondong: str | None = Field(None, description="읍/면/동", example="운중동")
+    donglee: str | None = Field(None, description="동/리 등 세부지역", example="")
+    detail: str | None = Field(None, description="상세주소 (해당되는 경우)", example="935")
+    fulladdr: str | None = Field(None, description="전체 주소 문자열", example="경기도 성남시 분당구 운중동 935")
 
 
 # REQUEST DATA
@@ -18,7 +18,7 @@ class GetPNURequest(BaseModel):
     lng: float = Field(..., description="경도 좌표", example=126.9780)
 
 class GetCoordRequest(BaseModel):
-    word: Optional[str] = Field(None, description="주소 문자열 (예: 경기도 성남시 분당구 ...)", example="경기도 성남시 분당구")
+    word: str | None = Field(None, description="주소 문자열 (예: 경기도 성남시 분당구 ...)", example="경기도 성남시 분당구")
 
 class AutoCompleteAddressRequest(BaseModel):
     query: str = Field(..., description="주소 자동완성용 검색어", example="분당")
@@ -35,7 +35,7 @@ class CoordAddressData(BaseModel):
     address: str = Field(..., description="주소 문자열", example="경기도 성남시 분당구")
 
 class AutoCompleteAddressData(BaseModel):
-    related_search: List[dict] = Field(
+    related_search: list[dict] = Field(
         ...,
         description="자동완성된 주소 검색 결과 목록",
         example=[
@@ -55,7 +55,7 @@ class AutoCompleteAddressData(BaseModel):
     )
 
 class CadastralMapData(BaseModel):
-    polygons: List[List[List[List[List[float]]]]] = Field(
+    polygons: list[list[list[list[list[float]]]]] = Field(
         ...,
         description="지적도 좌표 목록 (다각형)",
         example=[

@@ -1,6 +1,5 @@
 import csv
 import os
-from typing import Union
 from functools import lru_cache
 
 from app.core.config import BASE_DIR
@@ -13,14 +12,14 @@ PNU_CODE_PATH = os.path.join(BASE_DIR, "data", "PnuCode.csv")
 def load_pnu_mapping():
     with open(PNU_CODE_PATH, encoding="utf-8") as f:
         return list(csv.DictReader(f))
-    
+
 @lru_cache(maxsize=1)
 def load_pnu_lines():
     with open(PNU_CODE_PATH, encoding="utf-8") as f:
         return f.readlines()
 
 
-def code2addr(code: str, scale: int = 0, dict_format: bool = False) -> Union[str, AddressSchema, None]:
+def code2addr(code: str, scale: int = 0, dict_format: bool = False) -> str | AddressSchema | None:
     """PNU 코드를 주소로 변환"""
     csv_mapping = load_pnu_mapping()  # 캐시된 데이터 사용
     match = next((d for d in csv_mapping if d["code"].startswith(code[:10])), None)

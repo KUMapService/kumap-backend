@@ -1,15 +1,16 @@
 from datetime import datetime
 from typing import Tuple
-from sqlalchemy.orm import Session
+
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from app.enums.types import ReactionType
-from app.models.land import LandAuction, LandInfo, LandReport, LandListing
-from app.models.user import User, UserFavoriteLand, UserLandReportReaction
 from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
-from app.integrations.vworld_api import get_land_feature, get_land_use_plan
 from app.integrations.kakao_api import kakao_get_coord
+from app.integrations.vworld_api import get_land_feature, get_land_use_plan
+from app.models.land import LandAuction, LandInfo, LandListing, LandReport
+from app.models.user import User, UserFavoriteLand, UserLandReportReaction
 from app.schemas import land
 from app.services.land.predictor import land_price_predictor
 from app.utils.convert_code import code2addr
@@ -44,15 +45,15 @@ class LandService:
             stdr_month=lf.stdr_month,
         )
         return land.LandData(
-            pnu=pnu, 
-            address=address, 
-            lat=lat, 
+            pnu=pnu,
+            address=address,
+            lat=lat,
             lng=lng,
             predicted_price=None,
             last_predicted_date=None,
             detail=detail,
-            land_trade_list=[], 
-            auction=None, 
+            land_trade_list=[],
+            auction=None,
             listing=None,
             like_count=0,
         )
@@ -86,8 +87,8 @@ class LandService:
                     stdr_year=land_info.stdr_year,
                     stdr_month=land_info.stdr_month,
                 ),
-                land_trade_list=[], 
-                auction=None, 
+                land_trade_list=[],
+                auction=None,
                 listing=None,
                 like_count=land_info.like_count,
                 is_like=False,
@@ -119,7 +120,7 @@ class LandService:
             return new_land
         raise HTTPException(status_code=404, detail="토지 정보를 찾을 수 없습니다.")
 
-    def get_land_detail(self, pnu: str, payload: dict, db: Session) -> Tuple[land.LandData, bool]:
+    def get_land_detail(self, pnu: str, payload: dict, db: Session) -> tuple[land.LandData, bool]:
         is_like = False
         user_id = None
         if payload:
@@ -133,7 +134,7 @@ class LandService:
         data = self.get_land_data(pnu, db)
         if not data:
             raise HTTPException(status_code=500, detail="토지 정보를 받아오지 못했습니다.")
-        
+
         # 매물 정보 받아오기
         listing_data = db.query(LandListing).filter_by(pnu=pnu).first()
         if listing_data:
@@ -163,7 +164,7 @@ class LandService:
                     price=item.min_sale_price,
                     auction_date=datetime(
                         year=int(auction_data.auction_date // 10000),
-                        month=int((auction_data.auction_date // 100) % 100), 
+                        month=int((auction_data.auction_date // 100) % 100),
                         day=int(auction_data.auction_date % 100),
                         hour=int(auction_data.auction_time // 100),
                         minute=int(auction_data.auction_time % 100),
@@ -183,7 +184,7 @@ class LandService:
                 min_sale_price=auction_data.min_sale_price,
                 auction_date=datetime(
                     year=int(auction_data.auction_date // 10000),
-                    month=int((auction_data.auction_date // 100) % 100), 
+                    month=int((auction_data.auction_date // 100) % 100),
                     day=int(auction_data.auction_date % 100),
                     hour=int(auction_data.auction_time // 100),
                     minute=int(auction_data.auction_time % 100),
@@ -213,7 +214,7 @@ class LandService:
                 last_predicted_date=land_info.last_predicted_date,
             )
         return predicted_data
-    
+
     def get_land_report(self, pnu: str, payload: dict, db: Session) -> land.LandReportData:
         if not payload:
             return land.LandReportData(

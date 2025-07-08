@@ -1,5 +1,5 @@
-from typing import List
-from pydantic import Field, BaseModel, EmailStr
+
+from pydantic import BaseModel, EmailStr, Field
 
 from app.schemas.land import LandData
 
@@ -21,4 +21,4 @@ class ChangeLandLikeResponse(BaseModel):
     like: bool = Field(..., description="해당 토지의 좋아요 여부")
 
 class FavoriteLands(BaseModel):
-    favorites: List[LandData] = Field(..., description="좋아요 한 토지 목록")
+    favorites: list[LandData] = Field(..., description="좋아요 한 토지 목록")

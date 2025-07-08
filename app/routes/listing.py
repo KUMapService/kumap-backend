@@ -1,12 +1,12 @@
-from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.core.security import JWTBearer
+from app.db.session import get_db
 from app.enums.response import Status
-from app.services.land.listing import listing_service
 from app.schemas import APIResponse, error, listing
+from app.services.land.listing import listing_service
 
 listing_router = APIRouter(prefix="/listing")
 
@@ -32,7 +32,7 @@ def get_listing_data(
 
 @listing_router.get(
     "/get-marker",
-    response_model=APIResponse[List[listing.ListingMarker]],
+    response_model=APIResponse[list[listing.ListingMarker]],
     summary="토지 매물 마커 조회",
     description="영역 내의 토지 매물 마커를 조회합니다.",
 )
@@ -44,7 +44,7 @@ def get_listing_marker(
         req=request,
         db=db
     )
-    return APIResponse[List[listing.ListingMarker]](
+    return APIResponse[list[listing.ListingMarker]](
         status=Status.SUCCESS,
         message="영역 내 토지 매물 마커를 조회하였습니다.",
         data=data,

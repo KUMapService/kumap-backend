@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, TIMESTAMP, ForeignKey, Numeric
+from sqlalchemy import TIMESTAMP, Column, Float, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -17,7 +17,7 @@ class LandInfo(Base):
     __tablename__ = "land_info"
 
     pnu = Column(
-        String(20), primary_key=True, 
+        String(20), primary_key=True,
         comment="필지번호 (PNU)"
     )
     lat = Column(
@@ -29,63 +29,63 @@ class LandInfo(Base):
         comment="경도 (Longitude)"
     )
     official_price = Column(
-        Float, nullable=False, 
+        Float, nullable=False,
         comment="공시지가 (원)"
     )
     predicted_price = Column(
-        Float, nullable=True, 
+        Float, nullable=True,
         comment="예측된 ㅈ토지가격 (원)"
     )
     land_cls = Column(
-        String(10), nullable=False, 
+        String(10), nullable=False,
         comment="지목 (토지 분류)"
     )
     land_zoning = Column(
-        String(20), nullable=False, 
+        String(20), nullable=False,
         comment="용도지역"
     )
     land_usage = Column(
-        String(20), nullable=False, 
+        String(20), nullable=False,
         comment="토지이용 상황"
     )
     land_reg = Column(
-        String(10), nullable=False, 
+        String(10), nullable=False,
         comment="토지 필지 (일반/산)"
     )
     land_area = Column(
-        Float, nullable=False, 
+        Float, nullable=False,
         comment="토지 면적 (㎡)"
     )
     land_height = Column(
-        String(10), nullable=False, 
+        String(10), nullable=False,
         comment="지형 높이"
     )
     land_form = Column(
-        String(10), nullable=False, 
+        String(10), nullable=False,
         comment="지형 형태"
     )
     road_side = Column(
-        String(10), nullable=False, 
+        String(10), nullable=False,
         comment="도로 접면 여부"
     )
     use_plan = Column(
-        Text, nullable=True, 
+        Text, nullable=True,
         comment="토지 이용 계획"
     )
     stdr_year = Column(
-        String(4), nullable=False, 
+        String(4), nullable=False,
         comment="토지특성 기준년도"
     )
     stdr_month = Column(
-        String(2), nullable=False, 
+        String(2), nullable=False,
         comment="토지특성 기준월"
     )
     last_predicted_date = Column(
-        TIMESTAMP, server_default=None, 
+        TIMESTAMP, server_default=None,
         comment="마지막 예측 일시"
     )
     like_count = Column(
-        Integer, default=0, nullable=False, 
+        Integer, default=0, nullable=False,
         comment="좋아요 수"
     )
 
@@ -288,9 +288,9 @@ class LandAuction(Base):
     """
 
     __tablename__ = "land_auction"
-    
+
     doc_id = Column(
-        String(24), primary_key=True, 
+        String(24), primary_key=True,
         comment="경매 고유 ID"
     )
     pnu = Column(

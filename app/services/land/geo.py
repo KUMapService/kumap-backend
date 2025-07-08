@@ -1,9 +1,10 @@
 import json
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.config import BASE_DIR
-from app.integrations.kakao_api import kakao_get_pnu, kakao_get_coord, auto_complete_address
+from app.integrations.kakao_api import auto_complete_address, kakao_get_coord, kakao_get_pnu
 from app.integrations.vworld_api import get_geometry_data
 from app.models.geo import GeometryData
 from app.schemas import geo
@@ -48,7 +49,7 @@ class GeoService:
         return result
 
     def get_address_data(self):
-        f = open(BASE_DIR + "/data/PnuCode.csv", "r", encoding="utf-8")
+        f = open(BASE_DIR + "/data/PnuCode.csv", encoding="utf-8")
         lines = f.readlines()
         data = {}
         for line in lines:

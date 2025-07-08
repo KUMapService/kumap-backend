@@ -23,3 +23,9 @@ dependencies = [
     "xgboost>=3.0.0",
     "xmltodict>=0.14.2",
 ]
+
+[tool.ruff]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM"]
+ignore = ["E203"]
+line-length = 100
+target-version = "py313"

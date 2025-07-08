@@ -1,8 +1,8 @@
+
 from pydantic import BaseModel, Field, NaiveDatetime
-from typing import Optional, List
 
 from app.enums.types import Category
-from app.schemas.auction import Auction, AuctionMarker
+from app.schemas.auction import Auction
 from app.schemas.geo import AddressSchema
 from app.schemas.listing import Listing
 
@@ -34,7 +34,7 @@ class LandFeature(BaseModel):
     road_side_code: str = Field(..., description="도로접면코드")
     road_side: str = Field(..., description="도로접면명")
     official_price: float = Field(..., description="공시지가 (원/㎡)")
-    last_update_date: Optional[str] = Field(None, description="데이터 기준일자 (YYYY-MM-DD)")
+    last_update_date: str | None = Field(None, description="데이터 기준일자 (YYYY-MM-DD)")
 
 class LandTrade(BaseModel):
     # 토지 매매 정보 데이터 클래스
@@ -140,29 +140,29 @@ class LandData(BaseModel):
     address: AddressSchema = Field(..., description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
-    predicted_price: Optional[float] = Field(None, description="예측 실거래가")
-    last_predicted_date: Optional[NaiveDatetime] = Field(None, description="마지막 토지 가격 예측 일자")
+    predicted_price: float | None = Field(None, description="예측 실거래가")
+    last_predicted_date: NaiveDatetime | None = Field(None, description="마지막 토지 가격 예측 일자")
     detail: LandDetail = Field(..., description="토지 특성 정보")
-    land_trade_list: List[LandTrade] = Field(..., description="토지 실거래 목록")
-    auction: Optional[Auction] = Field(None, description="경매 정보")
-    listing: Optional[Listing] = Field(None, description="매물 정보")
+    land_trade_list: list[LandTrade] = Field(..., description="토지 실거래 목록")
+    auction: Auction | None = Field(None, description="경매 정보")
+    listing: Listing | None = Field(None, description="매물 정보")
     like_count: int = Field(..., description="토지의 좋아요 개수")
-    is_like: Optional[bool] = Field(None, description="사용자의 좋아요 여부")
+    is_like: bool | None = Field(None, description="사용자의 좋아요 여부")
 
 class LandSimpleData(BaseModel):
     pnu: str = Field(..., description="PNU코드")
     address: AddressSchema = Field(..., description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
-    predicted_price: Optional[float] = Field(None, description="예측 실거래가")
+    predicted_price: float | None = Field(None, description="예측 실거래가")
     price_ratio: float = Field(..., description="해당 지역의 공시지가 대비 예측가 가격대")
     land_cls: str = Field(..., description="지목")
     land_zoning: str = Field(..., description="용도지역")
-    last_predicted_date: Optional[NaiveDatetime] = Field(None, description="마지막 토지 가격 예측 일자")
+    last_predicted_date: NaiveDatetime | None = Field(None, description="마지막 토지 가격 예측 일자")
     like_count: int = Field(..., description="토지의 좋아요 개수")
-    is_like: Optional[bool] = Field(False, description="사용자의 좋아요 여부")
-    is_auction: Optional[bool] = Field(False, description="토지의 경매 등록 여부")
-    is_listing: Optional[bool] = Field(False, description="토지의 매물 등록 여부")
+    is_like: bool | None = Field(False, description="사용자의 좋아요 여부")
+    is_auction: bool | None = Field(False, description="토지의 경매 등록 여부")
+    is_listing: bool | None = Field(False, description="토지의 매물 등록 여부")
 
 class PredictedPriceData(BaseModel):
     predicted_price: float = Field(None, description="예측 실거래가")

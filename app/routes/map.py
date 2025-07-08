@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
+
 from app.core.config import KAKAO_JAVASCRIPT_API_KEY
 
 # router

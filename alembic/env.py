@@ -2,15 +2,16 @@ import os
 import sys
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # 상위 경로 추가
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # 프로젝트 import
-from app.db.session import SQLALCHEMY_DATABASE_URL
 from app.db.base import Base
+from app.db.session import SQLALCHEMY_DATABASE_URL
 
 # Alembic Config 객체
 config = context.config

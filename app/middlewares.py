@@ -1,6 +1,7 @@
+import os
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import os
 
 from app.core.config import APP_DIR
 

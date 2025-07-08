@@ -1,9 +1,10 @@
 # land_trade_finder.py
-from typing import Optional
+
 from app.integrations import public_api
 from app.schemas.land import LandBasicData
 
-def find_similar_land_trade(pnu: str, target_cls: str, target_zoning: str, start_year: int, start_month: int) -> Optional[LandBasicData]:
+
+def find_similar_land_trade(pnu: str, target_cls: str, target_zoning: str, start_year: int, start_month: int) -> LandBasicData | None:
     year, month = start_year, start_month
     trade_land = None
     while True:

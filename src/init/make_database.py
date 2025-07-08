@@ -1,11 +1,12 @@
 import sys
-from mysql.connector import Error
 from pathlib import Path
+
+from mysql.connector import Error
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 
-from app.core.config import ROOT_PW, USER_NAME, USER_PW, DATABASE_NAME  # noqa: E402
+from app.core.config import DATABASE_NAME, ROOT_PW, USER_NAME, USER_PW  # noqa: E402
 from src.init import create_connection  # noqa: E402
 
 

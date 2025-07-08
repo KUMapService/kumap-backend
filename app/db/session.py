@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.config import USER_NAME, USER_PW, DATABASE_NAME
+
+from app.core.config import DATABASE_NAME, USER_NAME, USER_PW
 
 SQLALCHEMY_DATABASE_URL = f"mysql://{USER_NAME}:{USER_PW}@localhost:3306/{DATABASE_NAME}"
 

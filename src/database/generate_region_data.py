@@ -1,8 +1,7 @@
 import argparse
+import json
 import os
 import sys
-import json
-from typing import Tuple
 from pathlib import Path
 
 # 프로젝트 루트 경로를 sys.path에 추가
@@ -11,10 +10,10 @@ sys.path.append(str(ROOT_DIR))
 
 from app.core.config import BASE_DIR  # noqa: E402
 from app.integrations.kakao_api import kakao_get_coord  # noqa: E402
-from src.init import create_connection, USER_NAME, USER_PW, DATABASE_NAME  # noqa: E402
+from src.init import DATABASE_NAME, USER_NAME, USER_PW, create_connection  # noqa: E402
 
 
-def get_centroid(coords: list) -> Tuple[float, float]:
+def get_centroid(coords: list) -> tuple[float, float]:
     """다각형 좌표 리스트의 중심 좌표(centroid)를 계산."""
     x_sum, y_sum = 0, 0
     n = len(coords)
@@ -34,7 +33,7 @@ def insert_region_coordinates(connection):
     """
 
     csv_path = os.path.join(BASE_DIR, "data/PnuCode.csv")
-    with open(csv_path, "r", encoding="utf-8") as file:
+    with open(csv_path, encoding="utf-8") as file:
         lines = file.readlines()
 
     for idx, line in enumerate(lines, 1):
@@ -81,7 +80,7 @@ def insert_cadastral_data(connection):
 
     for scale in ["emd", "sig", "sido"]:
         json_path = Path(BASE_DIR) / "src/dataset/cadastralmap" / f"{scale}.json"
-        with open(json_path, "r") as file:
+        with open(json_path) as file:
             data = json.load(file)
 
         polygons = data["features"]

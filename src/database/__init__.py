@@ -1,7 +1,8 @@
 import os
+
 import mysql.connector
-from mysql.connector import Error
 from dotenv import load_dotenv
+from mysql.connector import Error
 
 load_dotenv(dotenv_path="/home/kumap/land-price-backend/.env")
 

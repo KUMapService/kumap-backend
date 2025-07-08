@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
-from app.db.session import get_db
 from app.core.security import JWTBearer
+from app.db.session import get_db
 from app.enums.response import Status
-from app.services.land.owner import owner_service
 from app.schemas import APIResponse, error, owner
-
+from app.services.land.owner import owner_service
 
 owner_router = APIRouter(prefix="/owner")
 

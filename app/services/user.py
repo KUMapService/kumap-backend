@@ -1,18 +1,18 @@
-from datetime import datetime
 import os
 import random
 import secrets
-import string
 import smtplib
-from email.mime.text import MIMEText
+import string
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
-from typing import Optional
+from email.mime.text import MIMEText
+
 from fastapi import HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
-from app.core.config import APP_DIR, SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from app.core.config import APP_DIR, SMTP_PASSWORD, SMTP_PORT, SMTP_SERVER, SMTP_USERNAME
 from app.models.land import LandInfo, LandListing
 from app.models.user import User, UserFavoriteLand
 from app.services.land import land_service
@@ -34,7 +34,7 @@ class UserService:
 
         user.password = password_context.hash(random_password)
         db.commit()
-        
+
         self._send_email(email, random_password)
         return random_password
 
@@ -58,7 +58,7 @@ PW: {new_password}
         server.sendmail(SMTP_USERNAME, email, msg.as_string())
         server.quit()
 
-    def get_user_image(self, file_name: Optional[str] = None) -> FileResponse:
+    def get_user_image(self, file_name: str | None = None) -> FileResponse:
         if not file_name:
             return FileResponse(os.path.join(APP_DIR, "static/images/default-user-image.png"))
         return FileResponse(os.path.join(APP_DIR, "static/images/", file_name))
@@ -69,7 +69,7 @@ PW: {new_password}
         nickname: str,
         phone: str,
         is_image_deleted: bool,
-        image: Optional[UploadFile],
+        image: UploadFile | None,
         payload: dict,
         db: Session,
     ):
@@ -153,7 +153,7 @@ PW: {new_password}
             land, _ = land_service.get_land_detail(pnu=fav.pnu, payload=None, db=db)
             fav_data.append(land)
         return fav_data
-    
+
     def get_listings(self, payload: dict, db: Session):
         if not payload:
             raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")

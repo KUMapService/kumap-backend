@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from app.models.land import LandAuction
@@ -35,7 +36,7 @@ class AuctionService:
 				min_sale_price=data.min_sale_price,
 				auction_date=datetime(
                     year=int(data.auction_date // 10000),
-                    month=int((data.auction_date // 100) % 100), 
+                    month=int((data.auction_date // 100) % 100),
                     day=int(data.auction_date % 100),
                     hour=int(data.auction_time // 100),
                     minute=int(data.auction_time % 100),
@@ -73,7 +74,7 @@ class AuctionService:
                 price=data.min_sale_price,
 				auction_date=datetime(
                     year=int(data.auction_date // 10000),
-                    month=int((data.auction_date // 100) % 100), 
+                    month=int((data.auction_date // 100) % 100),
                     day=int(data.auction_date % 100),
                     hour=int(data.auction_time // 100),
                     minute=int(data.auction_time % 100),
@@ -83,6 +84,6 @@ class AuctionService:
             if (address := code2addr(data.pnu, dict_format=True)) is not None
         ]
 		return auctions
-	
+
 
 auction_service = AuctionService()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer
+from sqlalchemy import Column, Float, Integer, String
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.types import Numeric
 

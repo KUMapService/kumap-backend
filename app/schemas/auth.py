@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
 
 
 # REQUEST DATA
@@ -9,8 +9,8 @@ class LoginRequest(BaseModel):
 
 
 class DuplicateCheckRequest(BaseModel):
-    email: Optional[EmailStr] = Field(None, description="중복 확인할 이메일 주소", example="user@example.com")
-    nickname: Optional[str] = Field(None, description="중복 확인할 닉네임", example="coolnickname")
+    email: EmailStr | None = Field(None, description="중복 확인할 이메일 주소", example="user@example.com")
+    nickname: str | None = Field(None, description="중복 확인할 닉네임", example="coolnickname")
 
 
 class RegisterRequest(BaseModel):

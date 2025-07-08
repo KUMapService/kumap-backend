@@ -1,11 +1,11 @@
 from datetime import timedelta
-from typing import Tuple
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.security import create_access_token, create_refresh_token
 from app.models.user import User
 from app.utils import auth
-from app.core.security import create_access_token, create_refresh_token
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
@@ -13,7 +13,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 300
 class AuthService:
     """인증(Authentication) 관련 서비스 로직을 처리하는 클래스."""
 
-    def login(self, request, db: Session) -> Tuple[str, str]:
+    def login(self, request, db: Session) -> tuple[str, str]:
         """
         사용자가 입력한 이메일과 비밀번호를 검증하고,
         Access/Refresh 토큰을 발급한다.

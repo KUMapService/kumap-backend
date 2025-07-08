@@ -1,8 +1,10 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.db.session import SessionLocal
 from app.models.geo import RegionCoordinate, RegionStat
 from app.models.land import LandInfo
-from sqlalchemy import func
+
 
 def update_region_stat(region_obj: RegionCoordinate, db: Session):
     pnu_prefix = region_obj.pnu

@@ -1,8 +1,8 @@
-import re
-import requests
 import os
+import re
+
+import requests
 import xmltodict
-from typing import Optional, List
 
 from app.core.config import BASE_DIR, LAND_API_KEY
 from app.schemas.land import LandTrade
@@ -18,13 +18,13 @@ def _get_pnu_code(sgg_code: str, umd_name: str) -> str:
         return _PNU_DICT[sgg_code][umd_name]
 
     pnu_dict = {}
-    with open(PNU_CODE_PATH, "r", encoding="utf-8") as f:
+    with open(PNU_CODE_PATH, encoding="utf-8") as f:
         lines = f.readlines()
 
     for line in lines[1:]:
         parts = line.strip().split(",")
         code = parts[0]
-        if code[:5] not in pnu_dict.keys():
+        if code[:5] not in pnu_dict:
             pnu_dict[code[:5]] = {}
         umd_dl = " ".join(parts[3:]).strip()
         pnu_dict[code[:5]][umd_dl] = code
@@ -32,7 +32,7 @@ def _get_pnu_code(sgg_code: str, umd_name: str) -> str:
     _PNU_DICT = pnu_dict
     return pnu_dict[sgg_code][umd_name]
 
-def get_land_trades(pnu_code: str, year: int, month: int, target_cls: str = None, target_zoning: str = None) -> Optional[List[LandTrade]]:
+def get_land_trades(pnu_code: str, year: int, month: int, target_cls: str = None, target_zoning: str = None) -> list[LandTrade] | None:
     """공공데이터포털 API를 사용해 특정 PNU 지역과 월에 해당하는 토지 매매 정보 리스트를 반환합니다."""
     # 1. API 호출
     url = "http://apis.data.go.kr/1613000/RTMSDataSvcLandTrade/getRTMSDataSvcLandTrade"

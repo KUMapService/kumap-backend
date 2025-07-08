@@ -1,12 +1,11 @@
-from typing import List
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.core.security import JWTBearer
 from app.enums.response import Status
+from app.schemas import APIResponse, auction, error
 from app.services.land.auction import auction_service
-from app.schemas import APIResponse, error, auction
 
 auction_router = APIRouter(prefix="/auction")
 
@@ -31,7 +30,7 @@ def get_auction_data(
 
 @auction_router.get(
     "/get-marker",
-    response_model=APIResponse[List[auction.AuctionMarker]],
+    response_model=APIResponse[list[auction.AuctionMarker]],
     summary="토지 매물 마커 조회",
     description="영역 내의 토지 경매 마커를 조회합니다.",
 )
@@ -43,7 +42,7 @@ def get_auction_marker(
         req=request,
         db=db
     )
-    return APIResponse[List[auction.AuctionMarker]](
+    return APIResponse[list[auction.AuctionMarker]](
         status=Status.SUCCESS,
         message="영역 내 토지 경매 마커를 조회하였습니다.",
         data=data,

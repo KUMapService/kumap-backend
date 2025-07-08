@@ -1,5 +1,5 @@
-import xgboost as xgb
 import pandas as pd
+import xgboost as xgb
 
 from app.core.config import MODEL_PATH
 from app.modules.land_data_fetcher import fetch_land_basic_data

@@ -1,13 +1,13 @@
 import json
+
 import requests
-from typing import Optional
 
 from app.core.config import VWORLD_API_KEY
-from app.schemas.land import LandFeature, FluctuationRate
+from app.schemas.land import FluctuationRate, LandFeature
 from app.utils.date import get_prev_month
 
 
-def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
+def get_land_feature(pnu: str, year: int) -> LandFeature | None:
     """
     PNU와 기준연도를 바탕으로 토지 특성 정보를 가져옴.<br/>
     참조: https://www.vworld.kr/dtna/dtna_apiSvcFc_s001.do
@@ -58,13 +58,13 @@ def get_land_feature(pnu: str, year: int) -> Optional[LandFeature]:
         last_update_date=data.get("lastUpdtDt"),
     )
 
-def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
+def get_all_region_land_code(pnu: str, year: int) -> LandFeature | None:
     """
     PNU와 기준연도를 바탕으로 해당 지역의 모든 PNU 코드를 가져옴.<br/>
     참조: https://www.vworld.kr/dtna/dtna_apiSvcFc_s001.do
     """
     url = "https://api.vworld.kr/ned/data/getLandCharacteristics"
-    
+
     pnu_list = []
     curr_page = 1
     while True:
@@ -81,7 +81,7 @@ def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
         total_count = int(response.get("landCharacteristicss", {}).get("totalCount", 0))
         if not data:
             return None if year < 2015 else get_land_feature(pnu, year - 1)
-        
+
         for d in data:
             pnu_list.append(d["pnu"])
         if len(pnu_list) < total_count:
@@ -91,7 +91,7 @@ def get_all_region_land_code(pnu: str, year: int) -> Optional[LandFeature]:
             return pnu_list
 
 
-def get_land_use_plan(pnu: str, return2name: bool = False) -> Optional[str]:
+def get_land_use_plan(pnu: str, return2name: bool = False) -> str | None:
     """토지의 용도지역 계획 정보를 반환합니다."""
     url = "https://api.vworld.kr/ned/data/getLandUseAttr"
     params = {
@@ -113,7 +113,7 @@ def get_land_use_plan(pnu: str, return2name: bool = False) -> Optional[str]:
         ))
     )
 
-def get_geometry_data(pnu: str) -> Optional[dict]:
+def get_geometry_data(pnu: str) -> dict | None:
     """PNU 또는 법정동/시군구/시도 코드 기반으로 지적도 좌표를 반환합니다."""
     if len(pnu) == 19:
         data_type = "LP_PA_CBND_BUBUN"

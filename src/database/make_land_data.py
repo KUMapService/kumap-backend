@@ -1,13 +1,14 @@
 import csv
 import os
-from sqlalchemy.orm import Session
+
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from app.core.config import BASE_DIR
 from app.db.session import SessionLocal
+from app.integrations.vworld_api import get_all_region_land_code
 from app.models.land import LandInfo
 from app.services.land import LandService
-from app.integrations.vworld_api import get_all_region_land_code
 
 PNU_CODE_PATH = os.path.join(BASE_DIR, "data", "PnuCode.csv")
 MAX_LAND_PER_REGION = 10
@@ -45,10 +46,10 @@ def insert_land_data(pnu: str, db: Session):
 
         db.add(land_info)
         db.commit()
-        
+
         # 예측 가격도 바로 생성
         land_service.get_predict_price(pnu=pnu, db=db)
-        
+
         print(f"[INSERT] {pnu} {land_data.address.fulladdr}")
     except HTTPException as e:
         print(f"[ERROR] {pnu}: {e.detail}")

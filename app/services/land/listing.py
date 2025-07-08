@@ -1,8 +1,8 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
-from app.models.user import User
 from app.models.land import LandListing, LandOwner
+from app.models.user import User
 from app.schemas import listing
 from app.utils.convert_code import code2addr
 
@@ -55,7 +55,7 @@ class ListingService:
             size=size,
             total=total,
         )
-    
+
     def get_listing_marker(self, req: listing.GetListingMarkerRequest, db: Session) -> listing.ListingMarker:
         datas = (
             db.query(LandListing)
@@ -81,7 +81,7 @@ class ListingService:
             if (address := code2addr(data.pnu, dict_format=True)) is not None
         ]
         return listings
-    
+
     def register_listing(self, req: listing.RegisterListingRequest,  payload: dict, db: Session) -> None:
         # 유저 확인
         if not payload:
@@ -112,7 +112,7 @@ class ListingService:
         ))
         db.commit()
         return
-    
+
     def remove_listing(self, pnu: str, payload: dict, db: Session) -> None:
         # 유저 확인
         if not payload:
@@ -133,7 +133,7 @@ class ListingService:
             raise HTTPException(status_code=400, detail="소유주 등록이 되어있지 않은 토지입니다.")
         if owner.user_id != user.user_id:
             raise HTTPException(status_code=403, detail="다른 소유주의 토지는 매물을 해제할 수 없습니다.")
-        
+
         # 매물 제거
         db.delete(listing)
         db.commit()
@@ -142,6 +142,6 @@ class ListingService:
 
 
 
-    
+
 
 listing_service = ListingService()

@@ -1,16 +1,16 @@
-from typing import List
-from sqlalchemy import and_, desc, asc
+
+from sqlalchemy import and_, asc, desc
 from sqlalchemy.orm import Session
 
 from app.enums.types import MapZoomLevel, SortType
 from app.models.geo import RegionCoordinate, RegionStat
 from app.models.land import LandInfo
-from app.schemas import region, land
+from app.schemas import land, region
 from app.utils.convert_code import code2addr
 
 
 class RegionService:
-    def get_region_markers(self, lat1, lng1, lat2, lng2, zoom, db: Session) -> List[region.RegionData]:
+    def get_region_markers(self, lat1, lng1, lat2, lng2, zoom, db: Session) -> list[region.RegionData]:
         t = "eupmyeondong"
         if zoom in MapZoomLevel.HIGH:
             t = "sigungu"
@@ -60,7 +60,7 @@ class RegionService:
             total_land_count=stat.valid_count if stat else 0,
         )
 
-    def get_region_land_list(self, pnu: str, sort_type: SortType, page: int, db: Session) -> List[land.LandData]:
+    def get_region_land_list(self, pnu: str, sort_type: SortType, page: int, db: Session) -> list[land.LandData]:
         PAGE_SIZE = 10
         offset = (page - 1) * PAGE_SIZE
 
@@ -78,7 +78,7 @@ class RegionService:
 
         # 페이징 적용
         items = query.offset(offset).limit(PAGE_SIZE).all()
-        
+
         data = []
         for item in items:
             data.append(

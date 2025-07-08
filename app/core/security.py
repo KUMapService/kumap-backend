@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from typing import Optional
-from fastapi import Request, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
 
-from app.core.config import SECRET_KEY, ALGORITHM
+from fastapi import HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+
+from app.core.config import ALGORITHM, SECRET_KEY
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -49,7 +49,7 @@ class JWTBearer:
             )
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """엑세스 토큰 생성 함수."""
     to_encode = data.copy()
     if expires_delta:

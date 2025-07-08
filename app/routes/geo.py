@@ -1,20 +1,20 @@
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.db.session import get_db
 from app.enums.response import Status
-from app.services.land.geo import geo_service
 from app.schemas import APIResponse, error, geo
+from app.services.land.geo import geo_service
 
 geo_router = APIRouter(prefix="/geo")
 
 
 @geo_router.get(
-    "/get-pnu", 
-    response_model=APIResponse[geo.PNUAddressData], 
+    "/get-pnu",
+    response_model=APIResponse[geo.PNUAddressData],
     responses=error.make_error_responses(),
-    summary="위경도로 PNU 조회", 
+    summary="위경도로 PNU 조회",
     description="위도/경도 값을 기준으로 해당 위치의 PNU 코드와 행정주소를 반환합니다."
 )
 async def get_pnu(request: geo.GetPNURequest = Depends()):
@@ -29,10 +29,10 @@ async def get_pnu(request: geo.GetPNURequest = Depends()):
     )
 
 @geo_router.get(
-    "/get-coord", 
-    response_model=APIResponse[geo.CoordAddressData], 
+    "/get-coord",
+    response_model=APIResponse[geo.CoordAddressData],
     responses=error.make_error_responses(),
-    summary="주소로 위경도 조회", 
+    summary="주소로 위경도 조회",
     description="주소 문자열을 기준으로 위도/경도 좌표를 반환합니다. 카카오 API를 사용합니다."
 )
 async def get_coord(request: geo.GetCoordRequest = Depends()):
@@ -76,7 +76,7 @@ API 호출 시 최대 10개 이하 권장.
 """,
 )
 async def get_cadastral_map(
-    pnu: List[str] = Query(..., description="토지의 PNU 코드"),
+    pnu: list[str] = Query(..., description="토지의 PNU 코드"),
     db: Session = Depends(get_db),
 ):
     polygons = geo_service.get_cadastral_map(pnu, db)

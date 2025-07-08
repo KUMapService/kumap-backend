@@ -1,11 +1,11 @@
+
 import requests
-from typing import Optional
 
 from app.core.config import ECOS_API_KEY
 from app.utils.date import get_prev_month
 
 
-def get_producer_price_index(year: int, month: int) -> Optional[float]:
+def get_producer_price_index(year: int, month: int) -> float | None:
     """
     ECOS에서 생산자물가지수(PPI)를 가져옴.
 
@@ -23,7 +23,7 @@ def get_producer_price_index(year: int, month: int) -> Optional[float]:
         return get_producer_price_index(*get_prev_month(year, month))
     return None
 
-def get_consumer_price_index(year: int, month: int) -> Optional[float]:
+def get_consumer_price_index(year: int, month: int) -> float | None:
     """
     ECOS에서 소비자물가지수(CPI)를 가져옴.
 

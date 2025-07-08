@@ -1,4 +1,5 @@
 import time
+
 import google.generativeai as genai
 
 from app.core.config import GOOGLE_API_KEY, LLM_MODEL
@@ -37,10 +38,10 @@ def generate_land_report(pnu: str, predicted_price: float) -> str:
     # 주변 비교군 찾기
     start = time.time()
     compare_land = find_similar_land_trade(
-        pnu=pnu, 
-        target_cls=land_data.feature.land_cls, 
-        target_zoning=land_data.feature.land_zoning, 
-        start_year=now.year, 
+        pnu=pnu,
+        target_cls=land_data.feature.land_cls,
+        target_zoning=land_data.feature.land_zoning,
+        start_year=now.year,
         start_month=now.month
     )
     print(f"[Fetched land trade data] {time.time() - start:.2f}초", flush=True)

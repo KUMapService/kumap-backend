@@ -1,9 +1,10 @@
 from fastapi import Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.enums.response import Status
+
 
 def get_status_from_code(code: int) -> Status:
     if 200 <= code < 300:
