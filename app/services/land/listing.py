@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from app.models.user import User
-from app.models.land import LandListing
+from app.models.land import LandListing, LandOwner
 from app.schemas import listing
 from app.utils.convert_code import code2addr
 
@@ -94,6 +94,12 @@ class ListingService:
         listing = db.query(LandListing).filter_by(pnu=req.pnu).first()
         if listing is not None:
             raise HTTPException(status_code=422, detail="해당 토지는 이미 매물로 등록되어 있습니다.")
+        # 소유주 등록 여부 확인
+        owner = db.query(LandOwner).filter_by(pnu=req.pnu).first()
+        if owner is None:
+            raise HTTPException(status_code=400, detail="매물 등록 전에 소유주 등록을 먼저 진행해주세요.")
+        if owner.user_id != user.user_id:
+            raise HTTPException(status_code=403, detail="다른 소유주의 토지는 매물을 등록할 수 없습니다.")
         # 매물 등록
         db.add(LandListing(
             user_id=user.user_id,
@@ -121,6 +127,13 @@ class ListingService:
             raise HTTPException(status_code=422, detail="해당 토지는 매물로 등록되어 있지 않습니다.")
         if listing.user_id != user.user_id:
             raise HTTPException(status_code=403, detail="다른 사람이 올린 매물은 해제할 수 없습니다.")
+        # 소유주 등록 여부 확인
+        owner = db.query(LandOwner).filter_by(pnu=pnu).first()
+        if owner is None:
+            raise HTTPException(status_code=400, detail="소유주 등록이 되어있지 않은 토지입니다.")
+        if owner.user_id != user.user_id:
+            raise HTTPException(status_code=403, detail="다른 소유주의 토지는 매물을 해제할 수 없습니다.")
+        
         # 매물 제거
         db.delete(listing)
         db.commit()
