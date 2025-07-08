@@ -190,6 +190,41 @@ class LandTradeHistory(Base):
             f"deal_price={self.deal_price})>"
         )
 
+class LandOwner(Base):
+    """
+    🏠 토지 소유주 테이블 (LandListing)
+
+    - 사용자가 직접 등록한 소유 정보를 저장
+    - 등록 시각, 위치 정보, 사용자 등을 포함
+    """
+
+    __tablename__ = "land_owner"
+
+    owner_id = Column(
+        Integer, primary_key=True, autoincrement=True,
+        comment="소유 매물 ID"
+    )
+    user_id = Column(
+        Integer, ForeignKey("user.user_id"), nullable=False, index=True,
+        comment="소유주 사용자 ID"
+    )
+    pnu = Column(
+        String(20), nullable=False, index=True,
+        comment="PNU 코드 (토지 고유 식별자)"
+    )
+    lat = Column(
+        Numeric(17, 14), nullable=False,
+        comment="위도 (Latitude)"
+    )
+    lng = Column(
+        Numeric(17, 14), nullable=False,
+        comment="경도 (Longitude)"
+    )
+    registered_at = Column(
+        TIMESTAMP, nullable=True, server_default=func.current_timestamp(),
+        comment="등록 시각"
+    )
+
 class LandListing(Base):
     """
     🏠 토지 매물 테이블 (LandListing)
@@ -208,17 +243,9 @@ class LandListing(Base):
         Integer, ForeignKey("user.user_id"), nullable=False, index=True,
         comment="등록한 사용자 ID"
     )
-    pnu = Column(
-        String(20), nullable=False, index=True,
-        comment="PNU 코드 (토지 고유 식별자)"
-    )
-    lat = Column(
-        Numeric(17, 14), nullable=False,
-        comment="위도 (Latitude)"
-    )
-    lng = Column(
-        Numeric(17, 14), nullable=False,
-        comment="경도 (Longitude)"
+    owner_id = Column(
+        Integer, ForeignKey("land_owner.owner_id"), nullable=False,
+        comment="등록한 소유 토지 ID"
     )
     area = Column(
         Float, nullable=False,
@@ -242,6 +269,12 @@ class LandListing(Base):
         backref="land_listings",
         lazy="selectin"
     )
+    owner = relationship(
+        "LandOwner",
+        backref="land_listings",
+        lazy="selectin"
+    )
+
 
     def __repr__(self):
         return f"<LandListing(id={self.listing_id}, pnu={self.pnu}, user_id={self.user_id})>"
