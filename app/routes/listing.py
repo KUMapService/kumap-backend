@@ -50,8 +50,8 @@ def get_listing_marker(
         data=data,
     )
 
-@listing_router.get(
-    "/register-listing",
+@listing_router.post(
+    "",
     response_model=APIResponse,
     summary="토지 매물 등록",
     description="토지 매물을 등록합니다.",
@@ -67,8 +67,8 @@ def register_listing(
         message="토지 매물을 등록했습니다.",
     )
 
-@listing_router.get(
-    "/remove-listing",
+@listing_router.delete(
+    "",
     response_model=APIResponse,
     responses=error.make_error_responses(need_401=True, need_404=True, need_422=True),
     summary="토지 매물 등록 해제",
