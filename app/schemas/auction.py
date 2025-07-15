@@ -1,4 +1,5 @@
 
+from typing import Optional
 from pydantic import BaseModel, Field, NaiveDatetime
 
 from app.schemas.geo import AddressSchema
@@ -15,7 +16,7 @@ class AuctionMarker(BaseModel):
 
 class Auction(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema | None = Field(None, description="주소")
+    address: Optional[AddressSchema] = Field(None, description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     case_cd: str = Field(..., description="사건번호")
@@ -26,7 +27,7 @@ class Auction(BaseModel):
     auction_date: NaiveDatetime = Field(..., description="매각기일")
     court_in_charge: str = Field(..., description="담당")
     court_detail: str = Field(..., description="담당부서")
-    land_detail: str = Field(..., description="세부정보")
+    land_detail: Optional[str] = Field(None, description="세부정보")
     obj_list: list[AuctionMarker] = Field(..., description="물건내역")
 
 class AuctionSimpleData(BaseModel):

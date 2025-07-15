@@ -10,10 +10,10 @@ from email.mime.text import MIMEText
 from fastapi import HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import APP_DIR, SMTP_PASSWORD, SMTP_PORT, SMTP_SERVER, SMTP_USERNAME
-from app.models.land import LandInfo, LandListing
+from app.models.land import LandInfo, LandListing, LandOwner
 from app.models.user import User, UserFavoriteLand
 from app.services.land import land_service
 
@@ -154,6 +154,24 @@ PW: {new_password}
             fav_data.append(land)
         return fav_data
 
+    def get_my_land_list(self, payload: dict, db: Session):
+        if not payload:
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
+        email = payload.get("sub")
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
+        my_lands = (
+            db.query(LandOwner)
+            .filter(LandOwner.user_id == user.user_id)
+            .all()
+        )
+        my_lands_data = []
+        for my_land in my_lands:
+            land, _ = land_service.get_land_detail(pnu=my_land.pnu, payload=None, db=db)
+            my_lands_data.append(land)
+        return my_lands_data
+
     def get_listings(self, payload: dict, db: Session):
         if not payload:
             raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
@@ -163,14 +181,20 @@ PW: {new_password}
             raise HTTPException(status_code=404, detail="사용자가 존재하지 않습니다.")
         listings = (
             db.query(LandListing)
+            .options(joinedload(LandListing.owner))  # 미리 조인하여 owner 정보 로드
             .filter(LandListing.user_id == user.user_id)
             .all()
         )
         listings_data = []
         for listing in listings:
-            land, _ = land_service.get_land_detail(pnu=listing.pnu, payload=None, db=db)
+            owner = listing.owner
+            if not owner or not owner.pnu:
+                continue
+            land, _ = land_service.get_land_detail(pnu=owner.pnu, payload=None, db=db)
             listings_data.append(land)
         return listings_data
 
 
 user_service = UserService()
+
+

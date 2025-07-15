@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.models.land import LandListing, LandOwner
 from app.models.user import User
@@ -20,25 +20,29 @@ class ListingService:
                 raise HTTPException(status_code=404, detail="해당 이메일로 등록된 유저가 없습니다.")
             user_id = user.user_id
         offset = (page - 1) * size
+        LandOwnerAlias = aliased(LandOwner)
+
         datas = (
             db.query(LandListing)
-            .filter(LandListing.pnu.like(f"{pnu}%"))
+            .join(LandOwnerAlias, LandListing.owner_id == LandOwnerAlias.owner_id)
+            .filter(LandOwnerAlias.pnu.like(f"{pnu}%"))
             .offset(offset)
             .limit(size)
             .all()
         )
         total = (
             db.query(LandListing)
-            .filter(LandListing.pnu.like(f"{pnu}%"))
+            .join(LandOwnerAlias, LandListing.owner_id == LandOwnerAlias.owner_id)
+            .filter(LandOwnerAlias.pnu.like(f"{pnu}%"))
             .count()
         )
         # SQLAlchemy 모델을 Pydantic 모델로 변환
         listings = [
             listing.Listing(
-                pnu=data.pnu,
+                pnu=owner.pnu,
                 address=address,
-                lat=data.lat,
-                lng=data.lng,
+                lat=owner.lat,
+                lng=owner.lng,
                 area=data.area,
                 price=data.price,
                 summary=data.summary,
@@ -47,7 +51,7 @@ class ListingService:
                 nickname=data.user.nickname,  # relationship 통해 가져온 유저 닉네임
             )
             for data in datas
-            if (address := code2addr(data.pnu, dict_format=True)) is not None
+            if (owner := data.owner) and (address := code2addr(owner.pnu, dict_format=True))
         ]
         return listing.LandListings(
             listings=listings,
@@ -56,29 +60,35 @@ class ListingService:
             total=total,
         )
 
-    def get_listing_marker(self, req: listing.GetListingMarkerRequest, db: Session) -> listing.ListingMarker:
+    def get_listing_marker(
+        self,
+        req: listing.GetListingMarkerRequest,
+        db: Session
+    ) -> listing.ListingMarker:
         datas = (
-            db.query(LandListing)
+            db.query(LandListing, LandOwner)
+            .select_from(LandListing)
+            .join(LandOwner, LandListing.owner_id == LandOwner.owner_id)
             .filter(
-                LandListing.lat >= req.min_lat,
-                LandListing.lat <= req.max_lat,
-                LandListing.lng >= req.min_lng,
-                LandListing.lng <= req.max_lng
+                LandOwner.lat >= req.min_lat,
+                LandOwner.lat <= req.max_lat,
+                LandOwner.lng >= req.min_lng,
+                LandOwner.lng <= req.max_lng
             )
             .all()
         )
         listings = [
             listing.ListingMarker(
-                pnu=data.pnu,
+                pnu=owner.pnu,
                 address=address,
-                lat=data.lat,
-                lng=data.lng,
-                area=data.area,
-                price=data.price,
-                reg_date=data.registered_at,
+                lat=owner.lat,
+                lng=owner.lng,
+                area=listing.area,
+                price=listing.price,
+                reg_date=listing.registered_at,
             )
-            for data in datas
-            if (address := code2addr(data.pnu, dict_format=True)) is not None
+            for listing, owner in datas
+            if (address := code2addr(owner.pnu, dict_format=True)) is not None
         ]
         return listings
 
@@ -137,11 +147,6 @@ class ListingService:
         # 매물 제거
         db.delete(listing)
         db.commit()
-
-
-
-
-
 
 
 listing_service = ListingService()

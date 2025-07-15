@@ -117,6 +117,20 @@ def get_favorite_land(payload: dict = Depends(JWTBearer()), db: Session = Depend
     )
 
 @user_router.get(
+    "/get-my-land-list",
+    response_model=APIResponse[list[LandData]],
+    summary="사용자의 토지 목록 조회",
+    description="로그인한 사용자가 소유한 토지 목록을 반환합니다."
+)
+def get_my_land_list(payload: dict = Depends(JWTBearer()), db: Session = Depends(get_db)):
+    data = user_service.get_my_land_list(payload, db)
+    return APIResponse[list[LandData]](
+        status=Status.SUCCESS,
+        message="나의 토지 목록을 불러왔습니다.",
+        data=data,
+    )
+
+@user_router.get(
     "/get-listings",
     response_model=APIResponse[list[LandData]],
     summary="사용자의 즐겨찾기 토지 목록 조회",

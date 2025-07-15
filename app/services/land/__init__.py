@@ -9,9 +9,10 @@ from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
 from app.integrations.kakao_api import kakao_get_coord
 from app.integrations.vworld_api import get_land_feature, get_land_use_plan
-from app.models.land import LandAuction, LandInfo, LandListing, LandReport
+from app.models.land import LandAuction, LandInfo, LandListing, LandOwner, LandReport
 from app.models.user import User, UserFavoriteLand, UserLandReportReaction
 from app.schemas import land
+from app.schemas.auction import AuctionMarker
 from app.services.land.predictor import land_price_predictor
 from app.utils.convert_code import code2addr
 from app.utils.date import get_now
@@ -136,14 +137,20 @@ class LandService:
             raise HTTPException(status_code=500, detail="토지 정보를 받아오지 못했습니다.")
 
         # 매물 정보 받아오기
-        listing_data = db.query(LandListing).filter_by(pnu=pnu).first()
+        listing_data = (
+            db.query(LandListing, LandOwner)
+            .select_from(LandListing)
+            .join(LandOwner, LandListing.owner_id == LandOwner.owner_id)
+            .filter(LandOwner.pnu == pnu)
+            .first()
+        )
         if listing_data:
             # 매물 정보 파싱
             land_listing = land.Listing(
-                pnu=listing_data.pnu,
+                pnu=data.pnu,
                 nickname=listing_data.user.nickname,
-                lat=listing_data.lat,
-                lng=listing_data.lng,
+                lat=data.lat,
+                lng=data.lng,
                 area=listing_data.area,
                 price=listing_data.price,
                 summary=listing_data.summary,
@@ -157,7 +164,7 @@ class LandService:
         if auction_data:
             related_items = db.query(LandAuction).filter_by(case_cd=auction_data.case_cd).all()
             obj_list = [
-                land.AuctionMarker(
+                AuctionMarker(
                     pnu=item.pnu,
                     lat=item.lat,
                     lng=item.lng,
