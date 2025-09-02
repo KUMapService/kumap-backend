@@ -224,15 +224,12 @@ class LandService:
 
     def get_land_report(self, pnu: str, payload: dict, db: Session) -> land.LandReportData:
         if not payload:
-            return land.LandReportData(
-            pnu="0",
-            content=LAND_REPORT_FOR_GUEST,
-            like_count=526,
-            dislike_count=222,
-            generated_at=get_now(),
-            is_liked=False,
-            is_disliked=False,
-        )
+            raise HTTPException(status_code=401, detail="로그인 후에 이용 가능합니다.")
+        # TODO: 토지 분석서 열람 권한이 있는지 체크 (없으면 false)
+        # TODO: 해당 토지의 분석서를 토큰으로 구매하면 열람 가능
+        if True:
+            raise HTTPException(status_code=403, detail="토지 분석서 열람 권한이 존재하지 않습니다.")
+
         land_report = db.query(LandReport).filter_by(pnu=pnu).first()
         if not land_report:
             land_info = db.query(LandInfo).filter_by(pnu=pnu).first()

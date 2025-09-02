@@ -73,6 +73,7 @@ def get_land_report(
     db: Session = Depends(get_db)
 ):
     data = land_service.get_land_report(pnu=request.pnu, payload=payload, db=db)
+    
     return APIResponse[land.LandReportData](
         status=Status.SUCCESS,
         message="토지 분석서를 성공적으로 불러왔습니다.",
