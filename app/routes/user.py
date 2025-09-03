@@ -10,7 +10,7 @@ from app.schemas import APIResponse, user
 from app.schemas.land import LandData
 from app.services.user import user_service
 
-user_router = APIRouter(prefix="/user")
+user_router = APIRouter(prefix="/user", tags=["Users"])
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

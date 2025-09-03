@@ -8,7 +8,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, error, listing
 from app.services.land.listing import listing_service
 
-listing_router = APIRouter(prefix="/listing")
+listing_router = APIRouter(prefix="/listing", tags=["Listings"])
 
 
 @listing_router.get(

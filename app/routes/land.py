@@ -7,7 +7,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, error, land
 from app.services.land import land_service
 
-land_router = APIRouter(prefix="/land")
+land_router = APIRouter(prefix="/land", tags=["Lands"])
 
 
 @land_router.get(

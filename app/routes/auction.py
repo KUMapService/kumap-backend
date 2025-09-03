@@ -7,7 +7,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, auction, error
 from app.services.land.auction import auction_service
 
-auction_router = APIRouter(prefix="/auction")
+auction_router = APIRouter(prefix="/auction", tags=["Auctions"])
 
 
 @auction_router.get(

@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas import APIResponse, auth, error
 from app.services.auth import auth_service
 
-auth_router = APIRouter(prefix="/auth")
+auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @auth_router.post(

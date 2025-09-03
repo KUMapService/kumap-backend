@@ -7,7 +7,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, error, geo
 from app.services.land.geo import geo_service
 
-geo_router = APIRouter(prefix="/geo")
+geo_router = APIRouter(prefix="/geo", tags=["Geos"])
 
 
 @geo_router.get(

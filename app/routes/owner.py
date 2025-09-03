@@ -8,7 +8,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, error, owner
 from app.services.land.owner import owner_service
 
-owner_router = APIRouter(prefix="/owner")
+owner_router = APIRouter(prefix="/owner", tags=["Owners"])
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

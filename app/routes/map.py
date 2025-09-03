@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from app.core.config import KAKAO_JAVASCRIPT_API_KEY
 
 # router
-map_router = APIRouter(prefix="/map")
+map_router = APIRouter(prefix="/map", tags=["Map"])
 
 
 @map_router.get("/kakaomap", response_class=HTMLResponse)

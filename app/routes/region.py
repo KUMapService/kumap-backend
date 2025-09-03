@@ -7,7 +7,7 @@ from app.enums.response import Status
 from app.schemas import APIResponse, error, land, region
 from app.services.region import region_service
 
-region_router = APIRouter(prefix="/region")
+region_router = APIRouter(prefix="/region", tags=["Regions"])
 
 
 @region_router.get(
