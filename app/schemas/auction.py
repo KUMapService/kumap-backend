@@ -66,6 +66,6 @@ class GetAuctionListRequest(BaseModel):
 # RESPONSE DATA
 class LandAuctions(BaseModel):
     auctions: list[AuctionSimpleData] = Field(..., description="토지 경매 목록")
-    page: int
-    size: int
-    total: int
+    page: int = Field(..., description="현재 페이지")
+    size: int = Field(..., description="한 번에 받아올 데이터 크기")
+    total: int = Field(..., description="총 데이터 수")

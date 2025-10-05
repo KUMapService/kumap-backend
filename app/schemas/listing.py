@@ -54,6 +54,6 @@ class RemoveListingRequest(BaseModel):
 # RESPONSE DATA
 class LandListings(BaseModel):
     listings: list[Listing] = Field(..., description="토지 매물 목록")
-    page: int
-    size: int
-    total: int
+    page: int = Field(..., description="현재 페이지")
+    size: int = Field(..., description="한 번에 받아올 데이터 크기")
+    total: int = Field(..., description="총 데이터 수")

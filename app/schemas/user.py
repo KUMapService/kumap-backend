@@ -6,11 +6,11 @@ from app.schemas.land import LandData
 
 # REQUEST DATA
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: EmailStr = Field(..., description="이메일")
 
 class ChangeUserPasswordRequest(BaseModel):
-    current_password: str
-    change_password: str
+    current_password: str = Field(..., description="현재 비밀번호")
+    change_password: str = Field(..., description="변경할 비밀번호")
 
 class ChangeLandLikeRequest(BaseModel):
     pnu: str = Field(..., description="PNU코드")
