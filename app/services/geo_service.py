@@ -10,8 +10,8 @@ from app.exceptions.geo_exceptions import (
     PNURetrievalError,
     CadastralMapNotFoundError
 )
-from app.integrations.kakao_api import auto_complete_address, kakao_get_coord, kakao_get_pnu
-from app.integrations.vworld_api import get_geometry_data
+from app.integrations.kakao_api import KakaoAPI
+from app.integrations.vworld_api import VWorldAPI
 from app.repositories.geo_repository import GeoRepository
 
 
@@ -20,6 +20,8 @@ class GeoService:
 
     def __init__(self, geo_repo: GeoRepository):
         self.geo_repo = geo_repo
+        self.kakao_api = KakaoAPI()
+        self.vworld_api = VWorldAPI()
     
     def get_pnu_from_coordinates(self, lat: float, lng: float) -> PNUCoordinateDTO:
         """
@@ -35,7 +37,7 @@ class GeoService:
         Raises:
             PNURetrievalError: PNU 조회 실패
         """
-        pnu, address_data = kakao_get_pnu(lat, lng)
+        pnu, address_data = self.kakao_api.get_pnu(lat, lng)
 
         if not pnu or not address_data:
             raise PNURetrievalError()
@@ -57,16 +59,17 @@ class GeoService:
         Raises:
             CoordRetrievalError: 좌표 조회 실패
         """
-        lat, lng, address, road_address = kakao_get_coord(address)
+        lat, lng, address_data = self.kakao_api.get_coordinates(address)
 
         if lat is None or lng is None:
             raise CoordRetrievalError()
         
+        address = AddressDTO(**address_data)
+        
         return CoordinateDTO(
             lat=lat, 
             lng=lng, 
-            address=address, 
-            road_address=road_address
+            address=address
         )
 
     def auto_complete_address(self, query: str) -> List[Dict[str, str]]:
@@ -79,13 +82,13 @@ class GeoService:
         Returns:
             List[Dict[str, str]]
         """
-        return auto_complete_address(query)
+        return self.kakao_api.autocomplete_address(query)
 
     def get_cadastral_map(self, pnu_list: List[str]) -> List[List[List[List[List[float]]]]]:
         result = []
         for pnu_code in pnu_list:
             if len(pnu_code) == 19:
-                response = get_geometry_data(pnu=pnu_code)
+                response = self.vworld_api.get_cadastral_map(pnu=pnu_code)
                 if not response:
                     raise CadastralMapNotFoundError(pnu=pnu_code)
                 coordinates = response["features"][0]["geometry"]["coordinates"]

@@ -30,8 +30,7 @@ class GetPNUResponse(BaseModel):
 class GetCoordResponse(BaseModel):
     lat: float = Field(..., description="위도", example=37.3827531654055)
     lng: float = Field(..., description="경도", example=127.118829944284)
-    address: str = Field(..., description="지번 주소", example="경기도 성남시 분당구")
-    road_address: str = Field(..., description="도로명 주소", example="")
+    address: AddressDTO = Field(..., description="지번 주소", example="경기도 성남시 분당구")
 
 class AutoCompleteAddressResponse(BaseModel):
     related_search: List[dict] = Field(

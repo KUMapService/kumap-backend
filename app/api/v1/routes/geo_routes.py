@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.core.database import get_db
 from app.enums.response import Status
@@ -8,7 +9,6 @@ from app.schemas.geo_schema import (
     GetPNUParams,
     GetCoordParams,
     AutoCompleteAddressParams,
-    GetCadastralMapParams,
     GetPNUResponse,
     GetCoordResponse,
     AutoCompleteAddressResponse,
@@ -62,8 +62,7 @@ def get_coord(
         data=GetCoordResponse(
             lat=result.lat,
             lng=result.lng,
-            address=result.address,
-            road_address=result.road_address,
+            address=result.address
         )
     )
 
@@ -98,10 +97,10 @@ API 호출 시 최대 10개 이하 권장.
 """,
 )
 def get_cadastral_map(
-    params: GetCadastralMapParams = Depends(),
+    params: List[str] = Query(..., description="토지의 PNU 코드", example=["4113511500109350000"]),
     geo_service: GeoService = Depends(get_geo_service)
 ):
-    polygons = geo_service.get_cadastral_map(params.pnu)
+    polygons = geo_service.get_cadastral_map(params)
     return APIResponse[GetCadastralMapResponse](
         status=Status.SUCCESS,
         message="토지 지적도를 받아왔습니다.",

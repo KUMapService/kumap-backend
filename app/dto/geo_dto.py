@@ -16,8 +16,7 @@ class CoordinateDTO(BaseModel):
     """좌표 정보 DTO"""
     lat: float
     lng: float
-    address: str
-    road_address: str
+    address: AddressDTO
 
 
 class PNUCoordinateDTO(BaseModel):
