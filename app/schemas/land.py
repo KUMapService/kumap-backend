@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field, NaiveDatetime
 
 from app.enums.types import Category
 from app.schemas.auction import Auction
-from app.schemas.geo import AddressSchema
+from app.dto.geo_dto import AddressDTO
 from app.schemas.listing import Listing
 
 
@@ -137,7 +137,7 @@ class GetLandRequest(BaseModel):
 # RESPONSE DATA
 class LandData(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema = Field(..., description="주소")
+    address: AddressDTO = Field(..., description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     predicted_price: float | None = Field(None, description="예측 실거래가")
@@ -151,7 +151,7 @@ class LandData(BaseModel):
 
 class LandSimpleData(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema = Field(..., description="주소")
+    address: AddressDTO = Field(..., description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     predicted_price: float | None = Field(None, description="예측 실거래가")

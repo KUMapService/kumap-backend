@@ -1,13 +1,13 @@
 
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field, NaiveDatetime
 
-from app.schemas.geo import AddressSchema
+from app.dto.geo_dto import AddressDTO
 
 
 class AuctionMarker(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema | None = Field(None, description="주소")
+    address: Optional[AddressDTO] = Field(None, description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     price: float = Field(..., description="최저가")
@@ -16,7 +16,7 @@ class AuctionMarker(BaseModel):
 
 class Auction(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: Optional[AddressSchema] = Field(None, description="주소")
+    address: Optional[AddressDTO] = Field(None, description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     case_cd: str = Field(..., description="사건번호")
@@ -28,11 +28,11 @@ class Auction(BaseModel):
     court_in_charge: str = Field(..., description="담당")
     court_detail: str = Field(..., description="담당부서")
     land_detail: Optional[str] = Field(None, description="세부정보")
-    obj_list: list[AuctionMarker] = Field(..., description="물건내역")
+    obj_list: List[AuctionMarker] = Field(..., description="물건내역")
 
 class AuctionSimpleData(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema | None = Field(None, description="주소")
+    address: Optional[AddressDTO] = Field(None, description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     case_cd: str = Field(..., description="사건번호")
@@ -65,7 +65,7 @@ class GetAuctionListRequest(BaseModel):
 
 # RESPONSE DATA
 class LandAuctions(BaseModel):
-    auctions: list[AuctionSimpleData] = Field(..., description="토지 경매 목록")
+    auctions: List[AuctionSimpleData] = Field(..., description="토지 경매 목록")
     page: int = Field(..., description="현재 페이지")
     size: int = Field(..., description="한 번에 받아올 데이터 크기")
     total: int = Field(..., description="총 데이터 수")

@@ -1,30 +1,25 @@
-import os
-
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.core.config import APP_DIR
+from app.core.config import settings
 
 
-def setup_middlewares(app):
-    """FastAPI 앱에 미들웨어 등록하는 함수"""
-
-    origins = [
-        "http://localhost",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:51203",
-        "https://landprice.info",
-    ]
-
+def setup_middlewares(app: FastAPI):
+    """FastAPI 앱에 미들웨어 등록"""
+    
+    # CORS 설정을 config에서 가져오기
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=settings.cors_origins_list,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
+    
+    # Static files
     app.mount(
-        "/static", StaticFiles(directory=os.path.join(APP_DIR, "static")), name="static"
+        "/static",
+        StaticFiles(directory=settings.upload_dir.parent),
+        name="static"
     )

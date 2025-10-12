@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from app.core.config import VWORLD_API_KEY
+from app.core.config import settings
 from app.schemas.land import FluctuationRate, LandFeature
 from app.utils.date import get_prev_month
 
@@ -14,7 +14,7 @@ def get_land_feature(pnu: str, year: int) -> LandFeature | None:
     """
     url = "https://api.vworld.kr/ned/data/getLandCharacteristics"
     params = {
-        "key": VWORLD_API_KEY,
+        "key": settings.VWORLD_API_KEY,
         "format": "json",
         "numOfRows": "100",
         "pageNo": "1",
@@ -69,7 +69,7 @@ def get_all_region_land_code(pnu: str, year: int) -> LandFeature | None:
     curr_page = 1
     while True:
         params = {
-            "key": VWORLD_API_KEY,
+            "key": settings.VWORLD_API_KEY,
             "format": "json",
             "numOfRows": "1000",
             "pageNo": f"{curr_page}",
@@ -95,7 +95,7 @@ def get_land_use_plan(pnu: str, return2name: bool = False) -> str | None:
     """토지의 용도지역 계획 정보를 반환합니다."""
     url = "https://api.vworld.kr/ned/data/getLandUseAttr"
     params = {
-        "key": VWORLD_API_KEY,
+        "key": settings.VWORLD_API_KEY,
         "format": "json",
         "numOfRows": "100",
         "pageNo": "1",
@@ -130,7 +130,7 @@ def get_geometry_data(pnu: str) -> dict | None:
     else:
         return None
 
-    url = f"http://api.vworld.kr/req/data?service=data&request=GetFeature&data={data_type}&key={VWORLD_API_KEY}&attrFilter={attr_filter}&page=1&size=1000"
+    url = f"http://api.vworld.kr/req/data?service=data&request=GetFeature&data={data_type}&key={settings.VWORLD_API_KEY}&attrFilter={attr_filter}&page=1&size=1000"
     response = json.loads(requests.get(url).text)
     if response["response"]["status"] == "NOT_FOUND":
         return None
@@ -141,7 +141,7 @@ def get_fluctuation_rate_by_region(ld_code: str, year: int, month: int) -> Fluct
     """시군구 코드 기반 월간 땅값 변동률 데이터 조회"""
     url = "https://api.vworld.kr/ned/data/getByRegion"
     params = {
-        "key": VWORLD_API_KEY,
+        "key": settings.VWORLD_API_KEY,
         "format": "json",
         "numOfRows": "100",
         "pageNo": "1",
@@ -169,7 +169,7 @@ def get_fluctuation_rate_by_province(ld_code: str, year: int, month: int) -> Flu
     """시도 코드 기반 월간 땅값 변동률 데이터 조회"""
     url = "https://api.vworld.kr/ned/data/getLargeCLByRegion"
     params = {
-        "key": VWORLD_API_KEY,
+        "key": settings.VWORLD_API_KEY,
         "format": "json",
         "numOfRows": "100",
         "pageNo": "1",

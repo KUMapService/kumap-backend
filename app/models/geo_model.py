@@ -2,7 +2,7 @@ from sqlalchemy import Column, Float, Integer, String
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.types import Numeric
 
-from app.db.base import Base
+from app.core.database import Base
 
 
 class GeometryData(Base):

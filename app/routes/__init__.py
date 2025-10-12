@@ -4,6 +4,7 @@ from app.routes.geo import geo_router
 from app.routes.land import land_router
 from app.routes.listing import listing_router
 from app.routes.map import map_router
+from app.routes.owner import owner_router
 from app.routes.region import region_router
 from app.routes.user import user_router
 
@@ -16,6 +17,7 @@ routers = [
     user_router,
     map_router,
     region_router,
+    owner_router,
 ]
 
 def setup_routers(app):

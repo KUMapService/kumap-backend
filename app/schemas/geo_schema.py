@@ -1,41 +1,40 @@
-
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
-
-# DATA SCHEMA
-class AddressSchema(BaseModel):
-    sido: str | None = Field(None, description="시/도", example="경기도")
-    sigungu: str | None = Field(None, description="시/군/구", example="성남시 분당구")
-    eupmyeondong: str | None = Field(None, description="읍/면/동", example="운중동")
-    donglee: str | None = Field(None, description="동/리 등 세부지역", example="")
-    detail: str | None = Field(None, description="상세주소 (해당되는 경우)", example="935")
-    fulladdr: str | None = Field(None, description="전체 주소 문자열", example="경기도 성남시 분당구 운중동 935")
+from app.dto.geo_dto import AddressDTO
 
 
 # REQUEST DATA
-class GetPNURequest(BaseModel):
+class GetPNUParams(BaseModel):
     lat: float = Field(..., description="위도 좌표", example=37.5665)
     lng: float = Field(..., description="경도 좌표", example=126.9780)
 
-class GetCoordRequest(BaseModel):
-    word: str | None = Field(None, description="주소 문자열 (예: 경기도 성남시 분당구 ...)", example="경기도 성남시 분당구")
 
-class AutoCompleteAddressRequest(BaseModel):
+class GetCoordParams(BaseModel):
+    word: Optional[str] = Field(None, description="주소 문자열 (예: 경기도 성남시 분당구 ...)", example="경기도 성남시 분당구")
+
+
+class AutoCompleteAddressParams(BaseModel):
     query: str = Field(..., description="주소 자동완성용 검색어", example="분당")
 
 
-# RESPONSE DATA
-class PNUAddressData(BaseModel):
-    pnu: str = Field(..., description="19자리 PNU 코드", example="4113511500109350000")
-    address: AddressSchema = Field(..., description="해당 PNU에 대한 주소 정보")
+class GetCadastralMapParams(BaseModel):
+    pnu: List[str] = Field(..., description="토지의 PNU 코드")
 
-class CoordAddressData(BaseModel):
+
+# RESPONSE DATA
+class GetPNUResponse(BaseModel):
+    pnu: str = Field(..., description="19자리 PNU 코드", example="4113511500109350000")
+    address: AddressDTO = Field(..., description="해당 PNU에 대한 주소 정보")
+
+class GetCoordResponse(BaseModel):
     lat: float = Field(..., description="위도", example=37.3827531654055)
     lng: float = Field(..., description="경도", example=127.118829944284)
-    address: str = Field(..., description="주소 문자열", example="경기도 성남시 분당구")
+    address: str = Field(..., description="지번 주소", example="경기도 성남시 분당구")
+    road_address: str = Field(..., description="도로명 주소", example="")
 
-class AutoCompleteAddressData(BaseModel):
-    related_search: list[dict] = Field(
+class AutoCompleteAddressResponse(BaseModel):
+    related_search: List[dict] = Field(
         ...,
         description="자동완성된 주소 검색 결과 목록",
         example=[
@@ -54,8 +53,8 @@ class AutoCompleteAddressData(BaseModel):
         ]
     )
 
-class CadastralMapData(BaseModel):
-    polygons: list[list[list[list[list[float]]]]] = Field(
+class GetCadastralMapResponse(BaseModel):
+    polygons: List[List[List[List[List[float]]]]] = Field(
         ...,
         description="지적도 좌표 목록 (다각형)",
         example=[

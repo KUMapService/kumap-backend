@@ -1,11 +1,11 @@
 import csv
 import os
 from functools import lru_cache
+from typing import Optional, Union, Dict
 
-from app.core.config import BASE_DIR
-from app.schemas.geo import AddressSchema
+from app.core.config import settings
 
-PNU_CODE_PATH = os.path.join(BASE_DIR, "data", "PnuCode.csv")
+PNU_CODE_PATH = os.path.join(settings.BASE_DIR, "data", "PnuCode.csv")
 
 
 @lru_cache(maxsize=1)
@@ -19,7 +19,7 @@ def load_pnu_lines():
         return f.readlines()
 
 
-def code2addr(code: str, scale: int = 0, dict_format: bool = False) -> str | AddressSchema | None:
+def code2addr(code: str, scale: int = 0, dict_format: bool = False) -> Optional[Union[str, Dict[str, str]]]:
     """PNU 코드를 주소로 변환"""
     csv_mapping = load_pnu_mapping()  # 캐시된 데이터 사용
     match = next((d for d in csv_mapping if d["code"].startswith(code[:10])), None)
@@ -46,14 +46,14 @@ def code2addr(code: str, scale: int = 0, dict_format: bool = False) -> str | Add
     )
 
     if dict_format:
-        return AddressSchema(
-            sido=sido,
-            sigungu=sigungu,
-            eupmyeondong=eupmyeondong,
-            donglee=donglee,
-            detail=f"{m}{detail}" if detail else None,
-            fulladdr=full_address,
-        )
+        return {
+            "sido": sido,
+            "sigungu": sigungu,
+            "eupmyeondong": eupmyeondong,
+            "donglee": donglee,
+            "detail": f"{m}{detail}" if detail else None,
+            "fulladdr": full_address,
+        }
 
     if scale > 0:
         return {1: sido, 2: sigungu, 3: eupmyeondong}.get(scale, full_address)

@@ -12,6 +12,7 @@ dependencies = [
     "mysql-connector-python>=9.3.0",
     "mysqlclient>=2.2.7",
     "passlib>=1.7.4",
+    "pydantic-settings>=2.11.0",
     "pykakao>=0.0.7",
     "python-dotenv>=1.1.0",
     "python-multipart>=0.0.20",

@@ -1,13 +1,13 @@
-
+from typing import Optional, List
 from pydantic import BaseModel, Field, NaiveDatetime
 
-from app.schemas.geo import AddressSchema
+from app.dto.geo_dto import AddressDTO
 
 
 # DATA SCHEMA
 class Listing(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema | None = Field(None, description="주소")
+    address: Optional[AddressDTO] = Field(None, description="주소")
     nickname: str = Field(..., description="사용자 닉네임")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
@@ -19,7 +19,7 @@ class Listing(BaseModel):
 
 class ListingMarker(BaseModel):
     pnu: str = Field(..., description="PNU코드")
-    address: AddressSchema | None = Field(None, description="주소")
+    address: Optional[AddressDTO] = Field(None, description="주소")
     lat: float = Field(..., description="위도")
     lng: float = Field(..., description="경도")
     area: float = Field(..., description="매물 면적")
@@ -53,7 +53,7 @@ class RemoveListingRequest(BaseModel):
 
 # RESPONSE DATA
 class LandListings(BaseModel):
-    listings: list[Listing] = Field(..., description="토지 매물 목록")
+    listings: List[Listing] = Field(..., description="토지 매물 목록")
     page: int = Field(..., description="현재 페이지")
     size: int = Field(..., description="한 번에 받아올 데이터 크기")
     total: int = Field(..., description="총 데이터 수")

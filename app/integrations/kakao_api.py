@@ -1,13 +1,14 @@
+from typing import Tuple, Dict, List
 from PyKakao import Local
 
-from app.core.config import KAKAO_API_KEY
+from app.core.config import settings
 from app.enums.types import Category
 from app.utils.convert_code import code2addr
 
-_local = Local(service_key=KAKAO_API_KEY)
+_local = Local(service_key=settings.KAKAO_API_KEY)
 
 
-def kakao_get_pnu(lat: float, lng: float) -> tuple:
+def kakao_get_pnu(lat: float, lng: float) -> Tuple[str, Dict[str, str]]:
     """위도, 경도로부터 PNU 코드 및 주소 정보를 가져온다."""
     try:
         request_address = _local.geo_coord2address(lng, lat, dataframe=False)
@@ -35,7 +36,8 @@ def kakao_get_pnu(lat: float, lng: float) -> tuple:
         print(e)
         return None, None
 
-def kakao_get_pnu_from_addr(word: str):
+
+def kakao_get_pnu_from_addr(word: str) -> str:
     """주소 문자열로부터 PNU 코드를 가져온다."""
     address = _local.search_address(word, dataframe=False)
 
@@ -45,7 +47,8 @@ def kakao_get_pnu_from_addr(word: str):
     pnu = pnu if pnu != "" else address["documents"][0]["address"]["h_code"]
     return pnu
 
-def kakao_get_coord(word: str) -> tuple:
+
+def kakao_get_coord(word: str) -> Tuple[float, float, Dict[str, str], Dict[str, str]]:
     """주소 문자열로부터 (위도, 경도) 좌표를 가져온다."""
     address = _local.search_address(word, dataframe=False)
 
@@ -53,9 +56,12 @@ def kakao_get_coord(word: str) -> tuple:
         return None, None
     lng = float(address["documents"][0]["x"])
     lat = float(address["documents"][0]["y"])
-    return lat, lng
+    address = address["documents"][0]["address"]
+    road_address = address["road_address"]
+    return lat, lng, address, road_address
 
-def auto_complete_address(query: str):
+
+def auto_complete_address(query: str) -> List[Dict[str, str]]:
     """주소 자동완성 결과를 가져온다."""
     try:
         response = _local.search_keyword(query, dataframe=False, size=15)["documents"]
@@ -73,7 +79,8 @@ def auto_complete_address(query: str):
         related_search = []
     return related_search
 
-def get_nearest_place_distance(address: str) -> dict:
+
+def get_nearest_place_distance(address: str) -> Dict[str, int]:
     """주소 기준으로 각 카테고리별 가장 가까운 시설 거리(미터)를 가져온다."""
     sa = _local.search_address(address, dataframe=False)
     if not sa["documents"]:
@@ -88,7 +95,8 @@ def get_nearest_place_distance(address: str) -> dict:
             distances[category] = int(result["documents"][0]["distance"])
     return distances
 
-def get_place_count_in_radius(address: str, radius: 25) -> dict:
+
+def get_place_count_in_radius(address: str, radius: 25) -> Dict[str, int]:
     """주소 기준으로 특정 반경 안에 존재하는 각 카테고리별 시설 개수를 가져온다."""
     sa = _local.search_address(address, dataframe=False)
     if not sa["documents"]:

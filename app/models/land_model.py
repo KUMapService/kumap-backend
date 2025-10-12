@@ -2,7 +2,7 @@ from sqlalchemy import TIMESTAMP, Column, Float, ForeignKey, Integer, Numeric, S
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from app.core.database import Base
 
 
 class LandInfo(Base):
