@@ -115,7 +115,9 @@ def get_cadastral_map(
     summary="시도/시군구/읍면동 데이터 반환",
     description="시도/시군구/읍면동 데이터를 반환합니다."
 )
-def get_address_data():
+def get_address_data(
+    geo_service: GeoService = Depends(get_geo_service)
+):
     data = geo_service.get_address_data()
     return APIResponse[dict](
         status=Status.SUCCESS,

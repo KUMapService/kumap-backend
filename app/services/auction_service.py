@@ -1,30 +1,38 @@
 from datetime import datetime
-
+from typing import List, Tuple
 from sqlalchemy.orm import Session
 
 from app.models.land_model import LandAuction
-from app.schemas import auction
+from app.dto.auction_dto import AuctionSimpleDTO, AuctionMarkerDTO
+from app.repositories.auction_repository import AuctionRepository
 from app.utils.convert_code import code2addr
 
 
 class AuctionService:
-	def get_auction_data(self, pnu: str, page: int, size: int, db: Session) -> auction.LandAuctions:
-		offset = (page - 1) * size
-		datas = (
-            db.query(LandAuction)
-            .filter(LandAuction.pnu.like(f"{pnu}%"))
-            .offset(offset)
-            .limit(size)
-            .all()
-        )
-		total = (
-            db.query(LandAuction)
-            .filter(LandAuction.pnu.like(f"{pnu}%"))
-            .count()
-        )
-        # SQLAlchemy 모델을 Pydantic 모델로 변환
-		auctions = [
-            auction.AuctionSimpleData(
+    """토지 경매 서비스"""
+
+    def __init__(self, auction_repo: AuctionRepository):
+        """
+        토지 경매 서비스 초기화
+        
+        Args:
+            auction_repo: 토지 경매 리포지토리
+        """
+        self.auction_repo = auction_repo
+
+    def get_auction_list(self, pnu: str, page: int, size: int) -> Tuple[List[AuctionSimpleDTO], int]:
+        """
+        토지 경매 목록 조회
+        
+        Args:
+            pnu: PNU 코드
+            page: 페이지 번호
+            size: 페이지 크기
+        """
+        offset = (page - 1) * size
+        data_list, total = self.auction_repo.find_by_pnu_prefix(pnu, offset, size)
+        auction_list = [
+            AuctionSimpleDTO(
 				pnu=data.pnu,
 				address=address,
 				lat=data.lat,
@@ -44,29 +52,24 @@ class AuctionService:
 				court_in_charge=data.court_in_charge,
 				court_detail=data.court_detail,
             )
-            for data in datas
+            for data in data_list
             if (address := code2addr(data.pnu, dict_format=True)) is not None
         ]
-		return auction.LandAuctions(
-            auctions=auctions,
-            page=page,
-            size=size,
-            total=total,
-        )
+        return auction_list, total
 
-	def get_auction_marker(self, req: auction.GetAuctionMarkerRequest, db: Session) -> auction.AuctionMarker:
-		datas = (
-            db.query(LandAuction)
-            .filter(
-                LandAuction.lat >= req.min_lat,
-                LandAuction.lat <= req.max_lat,
-                LandAuction.lng >= req.min_lng,
-                LandAuction.lng <= req.max_lng
-            )
-            .all()
-        )
-		auctions = [
-            auction.AuctionMarker(
+    def get_auction_marker(self, min_lat: float, min_lng: float, max_lat: float, max_lng: float) -> List[AuctionMarkerDTO]:
+        """
+        토지 경매 마커 조회
+        
+        Args:
+            min_lat: 최소 위도
+            min_lng: 최소 경도
+            max_lat: 최대 위도
+            max_lng: 최대 경도
+        """
+        data_list = self.auction_repo.find_by_bbox(min_lat, min_lng, max_lat, max_lng)
+        auction_marker_list = [
+            AuctionMarkerDTO(
                 pnu=data.pnu,
                 address=address,
                 lat=data.lat,
@@ -80,10 +83,7 @@ class AuctionService:
                     minute=int(data.auction_time % 100),
                 ),
             )
-            for data in datas
+            for data in data_list
             if (address := code2addr(data.pnu, dict_format=True)) is not None
         ]
-		return auctions
-
-
-auction_service = AuctionService()
+        return auction_marker_list

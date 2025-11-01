@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.config import BASE_DIR
 from app.integrations.kakao_api import auto_complete_address, kakao_get_coord, kakao_get_pnu
 from app.integrations.vworld_api import get_geometry_data
-from app.models.geo import GeometryData
+from app.models.geo_model import GeometryData
 from app.schemas import geo
 
 

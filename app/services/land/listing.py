@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, aliased
 
-from app.models.land import LandListing, LandOwner
-from app.models.user import User
+from app.models.land_model import LandListing, LandOwner
+from app.models.user_model import User
 from app.schemas import listing
 from app.utils.convert_code import code2addr
 

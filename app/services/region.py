@@ -3,8 +3,8 @@ from sqlalchemy import and_, asc, desc
 from sqlalchemy.orm import Session
 
 from app.enums.types import MapZoomLevel, SortType
-from app.models.geo import RegionCoordinate, RegionStat
-from app.models.land import LandInfo
+from app.models.geo_model import RegionCoordinate, RegionStat
+from app.models.land_model import LandInfo
 from app.schemas import land, region
 from app.utils.convert_code import code2addr
 

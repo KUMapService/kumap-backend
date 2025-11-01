@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.models.land import LandOwner
-from app.models.user import User
+from app.models.land_model import LandOwner
+from app.models.user_model import User
 from app.schemas import owner
 
 

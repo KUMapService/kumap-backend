@@ -2,9 +2,9 @@
 from pydantic import BaseModel, Field, NaiveDatetime
 
 from app.enums.types import Category
-from app.schemas.auction import Auction
+from app.dto.auction_dto import AuctionDTO
 from app.dto.geo_dto import AddressDTO
-from app.schemas.listing import Listing
+from app.dto.listing_dto import ListingDTO
 
 
 # API DATA SCHEMA
@@ -135,7 +135,7 @@ class GetLandRequest(BaseModel):
 
 
 # RESPONSE DATA
-class LandData(BaseModel):
+class LandDetailResponse(BaseModel):
     pnu: str = Field(..., description="PNU코드")
     address: AddressDTO = Field(..., description="주소")
     lat: float = Field(..., description="위도")
@@ -144,8 +144,8 @@ class LandData(BaseModel):
     last_predicted_date: NaiveDatetime | None = Field(None, description="마지막 토지 가격 예측 일자")
     detail: LandDetail = Field(..., description="토지 특성 정보")
     land_trade_list: list[LandTrade] = Field(..., description="토지 실거래 목록")
-    auction: Auction | None = Field(None, description="경매 정보")
-    listing: Listing | None = Field(None, description="매물 정보")
+    auction: AuctionDTO | None = Field(None, description="경매 정보")
+    listing: ListingDTO | None = Field(None, description="매물 정보")
     like_count: int = Field(..., description="토지의 좋아요 개수")
     is_like: bool | None = Field(None, description="사용자의 좋아요 여부")
 
@@ -164,11 +164,11 @@ class LandSimpleData(BaseModel):
     is_auction: bool | None = Field(False, description="토지의 경매 등록 여부")
     is_listing: bool | None = Field(False, description="토지의 매물 등록 여부")
 
-class PredictedPriceData(BaseModel):
-    predicted_price: float = Field(None, description="예측 실거래가")
-    last_predicted_date: NaiveDatetime = Field(None, description="마지막 토지 가격 예측 일자")
+class PredictedPriceResponse(BaseModel):
+    predicted_price: float | None = Field(None, description="예측 실거래가")
+    last_predicted_date: NaiveDatetime | None = Field(None, description="마지막 토지 가격 예측 일자")
 
-class LandReportData(BaseModel):
+class LandReportResponse(BaseModel):
     pnu: str = Field(..., description="토지 고유 PNU 코드")
     content: str = Field(..., description="생성된 토지 분석서 텍스트")
     like_count: int = Field(..., description="좋아요 수", example=10)

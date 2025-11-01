@@ -9,8 +9,8 @@ from app.generators.land_prompt import LAND_REPORT_FOR_GUEST
 from app.generators.report_generator import generate_land_report
 from app.integrations.kakao_api import kakao_get_coord
 from app.integrations.vworld_api import get_land_feature, get_land_use_plan
-from app.models.land import LandAuction, LandInfo, LandListing, LandOwner, LandReport
-from app.models.user import User, UserFavoriteLand, UserLandReportReaction
+from app.models.land_model import LandAuction, LandInfo, LandListing, LandOwner, LandReport
+from app.models.user_model import User, UserFavoriteLand, UserLandReportReaction
 from app.schemas import land
 from app.schemas.auction import AuctionMarker
 from app.services.land.predictor import land_price_predictor
